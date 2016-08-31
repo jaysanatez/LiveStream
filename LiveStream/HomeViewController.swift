@@ -24,23 +24,6 @@ class HomeViewController: UIViewController {
         collectionView.reloadData()
     }
     
-    private func exploreDirectory() {
-        let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        
-        for url in urls {
-            do {
-                let contents =  try NSFileManager.defaultManager().contentsOfDirectoryAtPath(url.path!)
-                
-                print("printing contents of: \(url.path!)")
-                for obj in contents {
-                    print(obj)
-                }
-            } catch let e as NSError {
-                printError(e)
-            }
-        }
-    }
-    
     private func getVideosFromRoot() -> [String] {
         do {
             let path = getRootURL().path!
@@ -82,5 +65,3 @@ extension HomeViewController: UICollectionViewDataSource {
         return cell
     }
 }
-
-

@@ -435,4 +435,3 @@ extension RecordViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
 	}
  }
  */
-
