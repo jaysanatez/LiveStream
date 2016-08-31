@@ -15,26 +15,21 @@ class HomeViewController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
     let cellId = "cellId"
     
-    var urls: [String] = []
+    var coreDataStack: CoreDataStack!
+    lazy var videoCDService: VideoCDService = {
+        return VideoCDService(coreDataStack: self.coreDataStack, context: self.coreDataStack.mainContext)
+    }()
+    
+    var videos: [Video] = []
     
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
-        urls = getVideosFromRoot()
+        videos = videoCDService.retrieveAllVideos()
         collectionView.reloadData()
     }
     
-    private func getVideosFromRoot() -> [String] {
-        do {
-            let path = getRootURL().path!
-            return try NSFileManager.defaultManager().contentsOfDirectoryAtPath(path)
-        } catch let e as NSError {
-            printError(e)
-            return []
-        }
-    }
-    
-    private func playVideoFromURL(url: NSURL) {
+    /* private func playVideoFromURL(url: NSURL) {
         let player = AVPlayer(URL: url)
         let playerViewController = AVPlayerViewController()
         playerViewController.player = player
@@ -44,24 +39,26 @@ class HomeViewController: UIViewController {
                 validPlayer.play()
             }
         }
-    }
+    } */
 }
 
 extension HomeViewController: UICollectionViewDelegate {
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
-        print("tapped \(indexPath.row)")
+        // TODO: launch video
     }
 }
 
 extension HomeViewController: UICollectionViewDataSource {
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        // TODO: change to videos.count
         return 50
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(cellId, forIndexPath: indexPath)
+        // TODO: populate cell content
         return cell
     }
 }

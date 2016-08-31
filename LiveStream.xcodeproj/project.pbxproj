@@ -9,6 +9,11 @@
 /* Begin PBXBuildFile section */
 		1626523C1D60C0690039AE64 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1626523B1D60C0690039AE64 /* Globals.swift */; };
 		1626523E1D60EBF40039AE64 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1626523D1D60EBF40039AE64 /* HomeViewController.swift */; };
+		16AF426E1D772601007C16EB /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AF426D1D772601007C16EB /* CoreDataStack.swift */; };
+		16AF42711D772803007C16EB /* Video+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AF426F1D772803007C16EB /* Video+CoreDataProperties.swift */; };
+		16AF42721D772803007C16EB /* Video.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AF42701D772803007C16EB /* Video.swift */; };
+		16AF42741D77286A007C16EB /* BaseCDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AF42731D77286A007C16EB /* BaseCDService.swift */; };
+		16AF42761D772922007C16EB /* VideoCDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AF42751D772922007C16EB /* VideoCDService.swift */; };
 		16C7759A1D5FA3C50085B04F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16C775991D5FA3C50085B04F /* AppDelegate.swift */; };
 		16C7759C1D5FA3C50085B04F /* RecordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16C7759B1D5FA3C50085B04F /* RecordViewController.swift */; };
 		16C7759F1D5FA3C50085B04F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 16C7759D1D5FA3C50085B04F /* Main.storyboard */; };
@@ -31,6 +36,11 @@
 /* Begin PBXFileReference section */
 		1626523B1D60C0690039AE64 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
 		1626523D1D60EBF40039AE64 /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
+		16AF426D1D772601007C16EB /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
+		16AF426F1D772803007C16EB /* Video+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Video+CoreDataProperties.swift"; path = "../Video+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		16AF42701D772803007C16EB /* Video.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Video.swift; path = ../Video.swift; sourceTree = "<group>"; };
+		16AF42731D77286A007C16EB /* BaseCDService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseCDService.swift; sourceTree = "<group>"; };
+		16AF42751D772922007C16EB /* VideoCDService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoCDService.swift; sourceTree = "<group>"; };
 		16C775961D5FA3C50085B04F /* LiveStream.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveStream.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		16C775991D5FA3C50085B04F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		16C7759B1D5FA3C50085B04F /* RecordViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordViewController.swift; sourceTree = "<group>"; };
@@ -92,6 +102,11 @@
 				16C775A31D5FA3C50085B04F /* Assets.xcassets */,
 				16C775A81D5FA3C50085B04F /* Info.plist */,
 				16C775A01D5FA3C50085B04F /* LiveStream.xcdatamodeld */,
+				16AF426F1D772803007C16EB /* Video+CoreDataProperties.swift */,
+				16AF42701D772803007C16EB /* Video.swift */,
+				16AF42751D772922007C16EB /* VideoCDService.swift */,
+				16AF42731D77286A007C16EB /* BaseCDService.swift */,
+				16AF426D1D772601007C16EB /* CoreDataStack.swift */,
 			);
 			path = LiveStream;
 			sourceTree = "<group>";
@@ -207,10 +222,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				16AF42761D772922007C16EB /* VideoCDService.swift in Sources */,
 				1626523E1D60EBF40039AE64 /* HomeViewController.swift in Sources */,
+				16AF42711D772803007C16EB /* Video+CoreDataProperties.swift in Sources */,
 				1626523C1D60C0690039AE64 /* Globals.swift in Sources */,
 				16C7759C1D5FA3C50085B04F /* RecordViewController.swift in Sources */,
+				16AF426E1D772601007C16EB /* CoreDataStack.swift in Sources */,
+				16AF42721D772803007C16EB /* Video.swift in Sources */,
 				16C7759A1D5FA3C50085B04F /* AppDelegate.swift in Sources */,
+				16AF42741D77286A007C16EB /* BaseCDService.swift in Sources */,
 				16C775A21D5FA3C50085B04F /* LiveStream.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
