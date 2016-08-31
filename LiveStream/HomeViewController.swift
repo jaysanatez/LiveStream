@@ -12,14 +12,16 @@ import AVFoundation
 
 class HomeViewController: UIViewController {
 
-    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var collectionView: UICollectionView!
+    let cellId = "cellId"
+    
     var urls: [String] = []
     
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
         urls = getVideosFromRoot()
-        tableView.reloadData()
+        collectionView.reloadData()
     }
     
     private func exploreDirectory() {
@@ -62,23 +64,23 @@ class HomeViewController: UIViewController {
     }
 }
 
-extension HomeViewController: UITableViewDataSource {
+extension HomeViewController: UICollectionViewDelegate {
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return urls.count
+    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+        print("tapped \(indexPath.row)")
+    }
+}
+
+extension HomeViewController: UICollectionViewDataSource {
+    
+    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 50
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = UITableViewCell()
-        cell.textLabel?.text = urls[indexPath.row]
+    func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(cellId, forIndexPath: indexPath)
         return cell
     }
 }
 
-extension HomeViewController: UITableViewDelegate {
-    
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let url = getRootURL().URLByAppendingPathComponent(urls[indexPath.row])
-        playVideoFromURL(url)
-    }
-}
+

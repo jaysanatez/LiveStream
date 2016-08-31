@@ -18,21 +18,39 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="FmS-9X-DwC">
-                                <rect key="frame" x="0.0" y="72" width="600" height="520"/>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="eaH-36-cD9">
+                                <rect key="frame" x="10" y="74" width="580" height="516"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="TTi-Tf-Y9S">
+                                    <size key="itemSize" width="100" height="100"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <cells>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="cellId" id="E50-Xb-8BA">
+                                        <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                                            <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </view>
+                                        <color key="backgroundColor" red="0.71372549019999998" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                    </collectionViewCell>
+                                </cells>
                                 <connections>
-                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="C10-YD-Vex"/>
-                                    <outlet property="delegate" destination="BYZ-38-t0r" id="pm3-pf-m47"/>
+                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="Zs4-D9-0Kg"/>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="vYN-IT-j5W"/>
                                 </connections>
-                            </tableView>
+                            </collectionView>
                         </subviews>
                         <color key="backgroundColor" red="0.25882352939999997" green="0.25882352939999997" blue="0.25882352939999997" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
-                            <constraint firstItem="FmS-9X-DwC" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="8" id="GUG-a5-0PF"/>
-                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="FmS-9X-DwC" secondAttribute="bottom" constant="8" id="Len-UU-QvS"/>
-                            <constraint firstItem="FmS-9X-DwC" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="VBb-Ha-4R4"/>
-                            <constraint firstAttribute="trailing" secondItem="FmS-9X-DwC" secondAttribute="trailing" id="X3K-ml-eBQ"/>
+                            <constraint firstItem="eaH-36-cD9" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="10" id="Kh3-8L-UBW"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="eaH-36-cD9" secondAttribute="bottom" constant="10" id="Kig-dH-fxp"/>
+                            <constraint firstItem="eaH-36-cD9" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="10" id="Xmc-yB-96b"/>
+                            <constraint firstAttribute="trailing" secondItem="eaH-36-cD9" secondAttribute="trailing" constant="10" id="pGy-bE-Pqd"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="My Videos" id="8Jt-Ws-xui">
@@ -44,7 +62,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="tableView" destination="FmS-9X-DwC" id="hXz-vd-QsF"/>
+                        <outlet property="collectionView" destination="eaH-36-cD9" id="Rmi-h1-dfa"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
