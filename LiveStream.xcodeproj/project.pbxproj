@@ -10,6 +10,8 @@
 		1626523C1D60C0690039AE64 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1626523B1D60C0690039AE64 /* Globals.swift */; };
 		1626523E1D60EBF40039AE64 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1626523D1D60EBF40039AE64 /* HomeViewController.swift */; };
 		16A5D2A81D77E38C00D63D00 /* VideoDirectoryHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A5D2A71D77E38C00D63D00 /* VideoDirectoryHelpers.swift */; };
+		16A5D2AB1D77E43500D63D00 /* LiveStreamProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A5D2AA1D77E43500D63D00 /* LiveStreamProtocols.swift */; };
+		16A5D2AD1D77E54000D63D00 /* LiveStreamController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A5D2AC1D77E54000D63D00 /* LiveStreamController.swift */; };
 		16AF426E1D772601007C16EB /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AF426D1D772601007C16EB /* CoreDataStack.swift */; };
 		16AF42711D772803007C16EB /* Video+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AF426F1D772803007C16EB /* Video+CoreDataProperties.swift */; };
 		16AF42721D772803007C16EB /* Video.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AF42701D772803007C16EB /* Video.swift */; };
@@ -38,6 +40,8 @@
 		1626523B1D60C0690039AE64 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
 		1626523D1D60EBF40039AE64 /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		16A5D2A71D77E38C00D63D00 /* VideoDirectoryHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoDirectoryHelpers.swift; sourceTree = "<group>"; };
+		16A5D2AA1D77E43500D63D00 /* LiveStreamProtocols.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveStreamProtocols.swift; sourceTree = "<group>"; };
+		16A5D2AC1D77E54000D63D00 /* LiveStreamController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveStreamController.swift; sourceTree = "<group>"; };
 		16AF426D1D772601007C16EB /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		16AF426F1D772803007C16EB /* Video+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Video+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		16AF42701D772803007C16EB /* Video.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Video.swift; sourceTree = "<group>"; };
@@ -116,6 +120,15 @@
 			name = Misc;
 			sourceTree = "<group>";
 		};
+		16A5D2A91D77E40800D63D00 /* Recording */ = {
+			isa = PBXGroup;
+			children = (
+				16A5D2AA1D77E43500D63D00 /* LiveStreamProtocols.swift */,
+				16A5D2AC1D77E54000D63D00 /* LiveStreamController.swift */,
+			);
+			name = Recording;
+			sourceTree = "<group>";
+		};
 		16C7758D1D5FA3C50085B04F = {
 			isa = PBXGroup;
 			children = (
@@ -140,6 +153,7 @@
 				16C775991D5FA3C50085B04F /* AppDelegate.swift */,
 				16A5D2A51D77E32800D63D00 /* Resources */,
 				16A5D2A41D77E32500D63D00 /* UI */,
+				16A5D2A91D77E40800D63D00 /* Recording */,
 				16A5D2A31D77E31D00D63D00 /* CoreData */,
 				16A5D2A61D77E37B00D63D00 /* Misc */,
 			);
@@ -262,7 +276,9 @@
 				16AF42711D772803007C16EB /* Video+CoreDataProperties.swift in Sources */,
 				1626523C1D60C0690039AE64 /* Globals.swift in Sources */,
 				16C7759C1D5FA3C50085B04F /* RecordViewController.swift in Sources */,
+				16A5D2AB1D77E43500D63D00 /* LiveStreamProtocols.swift in Sources */,
 				16AF426E1D772601007C16EB /* CoreDataStack.swift in Sources */,
+				16A5D2AD1D77E54000D63D00 /* LiveStreamController.swift in Sources */,
 				16AF42721D772803007C16EB /* Video.swift in Sources */,
 				16C7759A1D5FA3C50085B04F /* AppDelegate.swift in Sources */,
 				16AF42741D77286A007C16EB /* BaseCDService.swift in Sources */,
