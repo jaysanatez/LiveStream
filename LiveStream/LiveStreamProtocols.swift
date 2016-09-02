@@ -10,11 +10,11 @@ import UIKit
 
 protocol LiveStreamProtocol {
     func initializeWithPreviewLayer(view: UIView?)
-    func startRecording()
-    func stopRecording()
+    func startRecordingVideo(orientation: UIDeviceOrientation)
+    func stopRecordingVideo()
 }
 
 protocol LiveStreamDelegate {
-    func didBeginRecording(videoUrl: NSURL)
-    func didFinishRecording(thumbnail: UIImage, videoDuration: Double)
+    func didBeginRecordingVideo(videoUrl: NSURL)
+    func didFinishRecordingVideo(thumbnail: UIImage, videoDuration: Double)
 }

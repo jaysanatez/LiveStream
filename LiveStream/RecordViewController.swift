@@ -45,11 +45,6 @@ class RecordViewController: UIViewController {
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
-        
-        /* if _session.running {
-            _session.stopRunning()
-        } */
-        
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
     
@@ -73,12 +68,11 @@ class RecordViewController: UIViewController {
     
     @IBAction func recordButtonTapped() {
         if isRecording {
-            // finishRecording()
+            controller.stopRecordingVideo()
         } else {
             isRecording = true
             durationLabel.hidden = false
-            
-            // startRecording()
+            controller.startRecordingVideo(UIDevice.currentDevice().orientation)
         }
         
         toggleOverview()
@@ -123,11 +117,13 @@ class RecordViewController: UIViewController {
 
 extension RecordViewController: LiveStreamDelegate {
     
-    func didBeginRecording(videoUrl: NSURL) {
-        // create CoreData object
+    func didBeginRecordingVideo(videoUrl: NSURL) {
+        // TODO: create CoreData object
+        print("URL: \(videoUrl)")
     }
     
-    func didFinishRecording(thumbnail: UIImage, videoDuration: Double) {
-        // update CoreData object
+    func didFinishRecordingVideo(thumbnail: UIImage, videoDuration: Double) {
+        // TODO: update CoreData object
+        print("video duration: \(videoDuration)")
     }
 }
