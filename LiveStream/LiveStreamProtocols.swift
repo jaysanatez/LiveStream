@@ -9,7 +9,7 @@
 import UIKit
 
 protocol LiveStreamProtocol {
-    func initializePreviewLayer(view: UIView)
+    func initializeWithPreviewLayer(view: UIView?)
     func startRecording()
     func stopRecording()
 }
