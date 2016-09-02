@@ -9,32 +9,25 @@
 import UIKit
 import AVFoundation
 
-enum RecordingState {
-    case NOT_STARTED
-    case RECORDING
-    case COMPLETED
-}
-
 class RecordViewController: UIViewController {
     
     @IBOutlet weak var cameraPreviewView: UIView!
     @IBOutlet weak var overviewView: UIView!
-    
-    @IBOutlet weak var cancelButton: UIButton!
-    @IBOutlet weak var finishButton: UIButton!
-    @IBOutlet weak var infoLabel: UILabel!
     @IBOutlet weak var recordButtonView: UIView!
     
-    let OVERVIEW_ALPHA: CGFloat = 0.65
-    private var recordingState: RecordingState = .NOT_STARTED
+    @IBOutlet weak var exitButton: UIButton!
+    @IBOutlet weak var durationLabel: UILabel!
+    
+    let overviewAlpha: CGFloat = 0.65
+    var isRecording = false
     
     // UIViewController overrides
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        overviewView.alpha = OVERVIEW_ALPHA
-        showInitialControls(true)
+        overviewView.alpha = overviewAlpha
+        durationLabel.hidden = true
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -43,16 +36,16 @@ class RecordViewController: UIViewController {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(orientationDidChange),
             name: UIDeviceOrientationDidChangeNotification, object: nil)
         
-        initializeAVCaptureSession()
+        // initializeAVCaptureSession()
         transformViewsForCurrentOrientation()
     }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         
-        if _session.running {
+        /* if _session.running {
             _session.stopRunning()
-        }
+        } */
         
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
@@ -71,23 +64,18 @@ class RecordViewController: UIViewController {
     
     // IBActions
     
-    @IBAction func cancelButtonTapped() {
-        dismissViewControllerAnimated(true, completion: nil)
-    }
-    
-    @IBAction func finishRecordingTapped() {
+    @IBAction func exitButtonTapped() {
         dismissViewControllerAnimated(true, completion: nil)
     }
     
     @IBAction func recordButtonTapped() {
-        switch recordingState
-        {
-        case .NOT_STARTED:
-            startRecording()
-        case .RECORDING:
-            finishRecording()
-        case .COMPLETED:
-            break // not reached
+        if isRecording {
+            // finishRecording()
+        } else {
+            isRecording = true
+            durationLabel.hidden = false
+            
+            // startRecording()
         }
         
         toggleOverview()
@@ -100,11 +88,6 @@ class RecordViewController: UIViewController {
     }
     
     // custom methods
-    
-    private func showInitialControls(show: Bool) {
-        cancelButton.hidden = !show
-        finishButton.hidden = show
-    }
 
     let orientationToAngles: [UIDeviceOrientation: Double] =
         [.LandscapeLeft: M_PI_2,
@@ -116,19 +99,19 @@ class RecordViewController: UIViewController {
         let orientation = UIDevice.currentDevice().orientation
         
         guard let angle = orientationToAngles[orientation] else {
+            // it is expected to get orientations not in the dictionary, so don't log error
             return
         }
         
         let transform = CGAffineTransformMakeRotation(CGFloat(angle))
         UIView.animateWithDuration(0.25) {
-            self.cancelButton.transform = transform
-            self.finishButton.transform = transform
-            self.infoLabel.transform = transform
+            self.exitButton.transform = transform
+            self.durationLabel.transform = transform
         }
     }
     
     private func toggleOverview() {
-        let newAlpha = OVERVIEW_ALPHA - overviewView.alpha
+        let newAlpha = overviewAlpha - overviewView.alpha
         UIView.animateWithDuration(0.15) {
             self.overviewView.alpha = newAlpha
         }
@@ -136,24 +119,18 @@ class RecordViewController: UIViewController {
     
     // recording state
     
-    private func startRecording() {
-        recordingState = .RECORDING
-        
+    // private func startRecording() {
         // add output to start capturing the session
-        addOutputs()
-    }
+        // addOutputs()
+    // }
     
-    private func finishRecording() {
-        recordingState = .COMPLETED
-        
-        showInitialControls(false)
-        infoLabel.text = "Done! Return home to rewatch your video."
-        recordButtonView.hidden = true
+    // private func finishRecording() {
+        // recordButtonView.hidden = true
         
         // remove output to stop capturing the session
-        removeOutputs()
-        finishWritingToAssetWriter()
-    }
+        // removeOutputs()
+        // finishWritingToAssetWriter()
+    // }
     
     // ****************************************************************************
     //
@@ -162,7 +139,7 @@ class RecordViewController: UIViewController {
     //
     // ****************************************************************************
     
-    let FRAMES_PER_SECOND: Int32 = 30
+    /* let FRAMES_PER_SECOND: Int32 = 30
     var frameCount: Int64 = 0
     
     private lazy var _session: AVCaptureSession = {
@@ -356,10 +333,10 @@ class RecordViewController: UIViewController {
         assetWriter.finishWritingWithCompletionHandler {
             print("Video written to \(assetWriter.outputURL.path!)")
         }
-    }
+    } */
 }
 
-extension RecordViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
+/* extension RecordViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
@@ -389,7 +366,7 @@ extension RecordViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         
         frameCount += 1
     }
-}
+} */
 
 // flip camera
 /*

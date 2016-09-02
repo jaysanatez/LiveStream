@@ -19,7 +19,7 @@ class LiveStreamController: LiveStreamProtocol {
         
     }
     
-    func startRecording(directoryPath: NSURL) {
+    func startRecording() {
         
     }
     

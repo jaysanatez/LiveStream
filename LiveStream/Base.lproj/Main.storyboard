@@ -87,49 +87,25 @@
                             <view alpha="0.65000000000000002" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="teh-kz-06v">
                                 <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ifv-pt-58w">
-                                        <rect key="frame" x="525" y="15" width="60" height="60"/>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SPd-Lr-APV">
+                                        <rect key="frame" x="530" y="20" width="50" height="50"/>
                                         <constraints>
-                                            <constraint firstAttribute="width" constant="60" id="XVH-cO-3Xw"/>
-                                            <constraint firstAttribute="width" secondItem="Ifv-pt-58w" secondAttribute="height" multiplier="1:1" id="pU8-Uf-WOQ"/>
+                                            <constraint firstAttribute="height" constant="50" id="MhV-dS-RJa"/>
+                                            <constraint firstAttribute="width" secondItem="SPd-Lr-APV" secondAttribute="height" multiplier="1:1" id="jly-Gw-PUe"/>
                                         </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <state key="normal" title="Cancel">
-                                            <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <state key="normal" title="Exit">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="cancelButtonTapped" destination="RPp-aD-14W" eventType="touchUpInside" id="Qzs-DW-JWZ"/>
+                                            <action selector="exitButtonTapped" destination="RPp-aD-14W" eventType="touchUpInside" id="Y3V-TE-jqL"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qv3-Gy-L6u">
-                                        <rect key="frame" x="15" y="15" width="60" height="60"/>
-                                        <constraints>
-                                            <constraint firstAttribute="width" secondItem="qv3-Gy-L6u" secondAttribute="height" multiplier="1:1" id="2Dm-q5-cOG"/>
-                                            <constraint firstAttribute="width" constant="60" id="mfU-JE-ice"/>
-                                        </constraints>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <state key="normal" title="Finish">
-                                            <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="finishRecordingTapped" destination="RPp-aD-14W" eventType="touchUpInside" id="cyV-oU-oVC"/>
-                                        </connections>
-                                    </button>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Press the button to start recording." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Y2P-19-Kbu">
-                                        <rect key="frame" x="166" y="289" width="269" height="21"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
-                                    <constraint firstItem="qv3-Gy-L6u" firstAttribute="leading" secondItem="teh-kz-06v" secondAttribute="leading" constant="15" id="4wR-6L-qe6"/>
-                                    <constraint firstItem="Ifv-pt-58w" firstAttribute="top" secondItem="teh-kz-06v" secondAttribute="top" constant="15" id="6la-AH-bF2"/>
-                                    <constraint firstItem="Y2P-19-Kbu" firstAttribute="centerY" secondItem="teh-kz-06v" secondAttribute="centerY" id="Bpn-W6-4Ox"/>
-                                    <constraint firstItem="qv3-Gy-L6u" firstAttribute="top" secondItem="teh-kz-06v" secondAttribute="top" constant="15" id="GMQ-C3-5lc"/>
-                                    <constraint firstAttribute="trailing" secondItem="Ifv-pt-58w" secondAttribute="trailing" constant="15" id="Iqn-BO-rjf"/>
-                                    <constraint firstItem="Y2P-19-Kbu" firstAttribute="centerX" secondItem="teh-kz-06v" secondAttribute="centerX" id="Jxx-ER-lA8"/>
+                                    <constraint firstAttribute="trailing" secondItem="SPd-Lr-APV" secondAttribute="trailing" constant="20" id="CKz-qr-nUN"/>
+                                    <constraint firstItem="SPd-Lr-APV" firstAttribute="top" secondItem="teh-kz-06v" secondAttribute="top" constant="20" id="vmr-OD-oOU"/>
                                 </constraints>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="oof-Yt-nhJ" userLabel="Record Button Container">
@@ -149,7 +125,19 @@
                                     </button>
                                     <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="R1C-x3-5No">
                                         <rect key="frame" x="2" y="2" width="60" height="60"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="U6F-05-5xk">
+                                                <rect key="frame" x="9" y="21" width="42" height="18"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                        </subviews>
                                         <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstItem="U6F-05-5xk" firstAttribute="centerY" secondItem="R1C-x3-5No" secondAttribute="centerY" id="mMi-o5-BrQ"/>
+                                            <constraint firstItem="U6F-05-5xk" firstAttribute="centerX" secondItem="R1C-x3-5No" secondAttribute="centerX" id="wWh-g6-6qk"/>
+                                        </constraints>
                                         <userDefinedRuntimeAttributes>
                                             <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
                                                 <integer key="value" value="30"/>
@@ -172,7 +160,7 @@
                                 </constraints>
                             </view>
                         </subviews>
-                        <color key="backgroundColor" red="0.25882352939999997" green="0.25882352939999997" blue="0.25882352939999997" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="AOB-LQ-eLX" firstAttribute="top" secondItem="teh-kz-06v" secondAttribute="bottom" id="7Bd-Z5-jSF"/>
                             <constraint firstItem="AOB-LQ-eLX" firstAttribute="top" secondItem="oof-Yt-nhJ" secondAttribute="bottom" constant="20" id="AcI-zf-0Q3"/>
@@ -188,9 +176,8 @@
                     </view>
                     <connections>
                         <outlet property="cameraPreviewView" destination="Ur1-4s-kDI" id="BfB-HW-d8D"/>
-                        <outlet property="cancelButton" destination="Ifv-pt-58w" id="3aJ-in-dd9"/>
-                        <outlet property="finishButton" destination="qv3-Gy-L6u" id="h19-8L-0ZA"/>
-                        <outlet property="infoLabel" destination="Y2P-19-Kbu" id="azH-VX-LU0"/>
+                        <outlet property="durationLabel" destination="U6F-05-5xk" id="gMm-sT-VEl"/>
+                        <outlet property="exitButton" destination="SPd-Lr-APV" id="Z94-a6-Uf8"/>
                         <outlet property="overviewView" destination="teh-kz-06v" id="i0n-g2-Amy"/>
                         <outlet property="recordButtonView" destination="oof-Yt-nhJ" id="suS-4o-0r4"/>
                     </connections>
