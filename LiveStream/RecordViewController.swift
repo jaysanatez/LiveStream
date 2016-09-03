@@ -24,6 +24,8 @@ class RecordViewController: UIViewController {
         return LiveStreamController(delegate: self)
     }()
     
+    var videoCdService: VideoCDService!
+    
     // UIViewController overrides
     
     override func viewDidLoad() {
@@ -118,8 +120,14 @@ class RecordViewController: UIViewController {
 extension RecordViewController: LiveStreamDelegate {
     
     func didBeginRecordingVideo(videoUrl: NSURL) {
-        // TODO: create CoreData object
-        print("URL: \(videoUrl)")
+        guard let path = videoUrl.path else {
+            print("Invalid path from video url.")
+            return
+        }
+        
+        if let _ = videoCdService.createNewVideo(path) {
+            print("Video was created at path \(path)")
+        }
     }
     
     func didFinishRecordingVideo(thumbnail: UIImage, videoDuration: Double) {

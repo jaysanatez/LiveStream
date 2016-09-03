@@ -29,19 +29,21 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         return s
     }()
     
+    private lazy var videoUrl: NSURL = {
+        return getRootURL().URLByAppendingPathComponent("output_\(getDateAbbreviation()).mp4")
+    }()
+    
     private lazy var _assetWriter: AVAssetWriter? = {
-        let url = self.getVideoUrl()
-        print("Asset writer configured to path: \(url.path!)")
-        if NSFileManager.defaultManager().fileExistsAtPath(url.path!) {
+        if NSFileManager.defaultManager().fileExistsAtPath(self.videoUrl.path!) {
             do {
-                try NSFileManager.defaultManager().removeItemAtPath(url.path!)
+                try NSFileManager.defaultManager().removeItemAtPath(self.videoUrl.path!)
             } catch {
                 print("Unable to delete existing .mp4 file")
                 return nil
             }
         }
         
-        guard let assetWriter = try? AVAssetWriter(URL: url, fileType: AVFileTypeMPEG4) else {
+        guard let assetWriter = try? AVAssetWriter(URL: self.videoUrl, fileType: AVFileTypeMPEG4) else {
             print("Unable to construct asset writer.")
             return nil
         }
@@ -73,12 +75,12 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         }
         
         _session.startRunning()
-        delegate.didBeginRecordingVideo(getVideoUrl())
     }
     
     func startRecordingVideo(orientation: UIDeviceOrientation) {
         // add outputs to start capturing the session
         addOutputs(orientation)
+        delegate.didBeginRecordingVideo(videoUrl)
     }
     
     func stopRecordingVideo() {
@@ -99,7 +101,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             } else {
                 print("Unable to add the input of type \(mediaType).")
             }
-            
         } catch let e as NSError {
             print("Unable to access device for type \(mediaType).")
             printError(e)
@@ -211,6 +212,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         if assetWriter.canAddInput(assetWriterInput) {
             assetWriter.addInput(assetWriterInput)
+        } else {
+            print("Unable to add asset writer input.")
         }
     }
     
@@ -226,7 +229,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         assetWriter.startWriting()
         assetWriter.startSessionAtSourceTime(kCMTimeZero)
-        configuredAssetWriter = true
     }
     
     private func finishWritingToAssetWriter() {
@@ -241,15 +243,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         assetWriter.finishWritingWithCompletionHandler {
             print("Video written to \(assetWriter.outputURL.path!)")
         }
-    }
-    
-    private func getVideoUrl() -> NSURL {
-        if let url = _videoUrl {
-            return url
-        }
-        
-        _videoUrl = getRootURL().URLByAppendingPathComponent("output_\(getDateAbbreviation()).mp4")
-        return _videoUrl!
     }
 }
 
@@ -266,7 +259,9 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate {
         if !configuredAssetWriter {
             let width = CGFloat(CVPixelBufferGetWidth(imageBuffer))
             let height = CGFloat(CVPixelBufferGetHeight(imageBuffer))
+            print("\(height) x \(width)")
             configureAssetWriter(CGSizeMake(width, height))
+            configuredAssetWriter = true
         }
         
         CVPixelBufferUnlockBaseAddress(imageBuffer, 0)
