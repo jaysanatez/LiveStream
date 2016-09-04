@@ -26,13 +26,11 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     private lazy var _session: AVCaptureSession = {
         let s = AVCaptureSession()
         s.sessionPreset = AVCaptureSessionPresetHigh
-        print("Created capture session.")
         return s
     }()
     
     private lazy var videoUrl: NSURL = {
         let url = GetRootURL().URLByAppendingPathComponent("video_\(GetDateAbbreviation()).mp4")
-        print("Video url set to \(url)")
         return url
     }()
     
@@ -86,7 +84,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     
     func startRecordingVideo(orientation: UIDeviceOrientation) {
         // add outputs to start capturing the session
-        print("Adding outputs..")
         addOutputs(orientation)
         delegate.didBeginRecordingVideo(videoUrl)
     }

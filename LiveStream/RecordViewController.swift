@@ -26,8 +26,10 @@ class RecordViewController: UIViewController {
     }()
     
     var videoCdService: VideoCDService!
-    
     var activeVideo: Video?
+    
+    var timeStart = NSDate()
+    var timer = NSTimer()
     
     // UIViewController overrides
     
@@ -44,9 +46,10 @@ class RecordViewController: UIViewController {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(orientationDidChange),
             name: UIDeviceOrientationDidChangeNotification, object: nil)
         
-        print("Initializing preview layer...")
         controller.initializeWithPreviewLayer(cameraPreviewView)
         transformViewsForCurrentOrientation()
+        
+        timer = NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: #selector(timerCallback), userInfo: nil, repeats: true)
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -74,16 +77,18 @@ class RecordViewController: UIViewController {
     
     @IBAction func recordButtonTapped() {
         if isRecording {
-            print("Stop recording video...")
             recordButtonView.hidden = true
+            
+            timer.invalidate()
             controller.stopRecordingVideo()
         } else {
             isRecording = true
             durationLabel.hidden = false
             
-            print("Start recording video...")
             controller.startRecordingVideo(UIDevice.currentDevice().orientation)
-            // TODO: show time on button
+            
+            timeStart = NSDate()
+            NSRunLoop.currentRunLoop().addTimer(timer, forMode: NSDefaultRunLoopMode)
         }
         
         toggleOverview()
@@ -93,6 +98,13 @@ class RecordViewController: UIViewController {
     
     func orientationDidChange(notif: NSNotification) {
         transformViewsForCurrentOrientation()
+    }
+    
+    // timer callback
+    
+    func timerCallback() {
+        let ti = NSDate().timeIntervalSinceDate(timeStart)
+        durationLabel.text = GetClockFormattedString(Int(ti))
     }
     
     // custom methods
