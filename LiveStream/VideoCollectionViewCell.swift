@@ -11,4 +11,5 @@ import UIKit
 class VideoCollectionViewCell: UICollectionViewCell {
     
     @IBOutlet var tileImageView: UIImageView!
+    @IBOutlet var durationLabel: UILabel!
 }

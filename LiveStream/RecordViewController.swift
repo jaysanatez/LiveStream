@@ -83,6 +83,7 @@ class RecordViewController: UIViewController {
             
             print("Start recording video...")
             controller.startRecordingVideo(UIDevice.currentDevice().orientation)
+            // TODO: show time on button
         }
         
         toggleOverview()
@@ -150,14 +151,14 @@ extension RecordViewController: LiveStreamDelegate {
         
         let asset = AVAsset(URL: video.getAbsoluteURL())
         let imageGenerator = AVAssetImageGenerator(asset: asset)
-        var time = asset.duration
         
-        // TODO: set duration
-        print("TIME: \(time)")
-        time.value = time.value / 2
+        // set video duration
+        let time = asset.duration
+        video.durationSec = CMTimeGetSeconds(time)
         
         do {
-            let imageRef = try imageGenerator.copyCGImageAtTime(time, actualTime: nil)
+            let newTime = CMTime(value: time.value / 2, timescale: time.timescale)
+            let imageRef = try imageGenerator.copyCGImageAtTime(newTime, actualTime: nil)
             let image = UIImage(CGImage: imageRef)
             
             // TODO: size down image

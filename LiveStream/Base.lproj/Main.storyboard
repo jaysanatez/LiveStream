@@ -38,17 +38,31 @@
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gXb-Pz-Nhh">
                                                     <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                                 </imageView>
+                                                <label opaque="NO" userInteractionEnabled="NO" alpha="0.69999999999999996" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EJl-L2-Qul">
+                                                    <rect key="frame" x="0.0" y="75" width="100" height="25"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="25" id="8B7-DQ-wEp"/>
+                                                    </constraints>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
                                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                         <constraints>
+                                            <constraint firstItem="EJl-L2-Qul" firstAttribute="leading" secondItem="E50-Xb-8BA" secondAttribute="leading" id="4WT-Uy-XA0"/>
+                                            <constraint firstAttribute="bottom" secondItem="EJl-L2-Qul" secondAttribute="bottom" id="4Y2-xs-CVq"/>
+                                            <constraint firstAttribute="trailing" secondItem="EJl-L2-Qul" secondAttribute="trailing" id="DIg-49-DZn"/>
                                             <constraint firstAttribute="trailing" secondItem="gXb-Pz-Nhh" secondAttribute="trailing" id="Ia9-cD-PZn"/>
                                             <constraint firstItem="gXb-Pz-Nhh" firstAttribute="leading" secondItem="E50-Xb-8BA" secondAttribute="leading" id="WOd-Ld-Omv"/>
                                             <constraint firstAttribute="bottom" secondItem="gXb-Pz-Nhh" secondAttribute="bottom" id="XVN-nT-YyP"/>
                                             <constraint firstItem="gXb-Pz-Nhh" firstAttribute="top" secondItem="E50-Xb-8BA" secondAttribute="top" id="kva-9w-s47"/>
                                         </constraints>
                                         <connections>
+                                            <outlet property="durationLabel" destination="EJl-L2-Qul" id="Nbh-NM-Whe"/>
                                             <outlet property="tileImageView" destination="gXb-Pz-Nhh" id="MYP-Bj-l6h"/>
                                         </connections>
                                     </collectionViewCell>
