@@ -73,8 +73,13 @@ extension HomeViewController: UICollectionViewDataSource {
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(cellId, forIndexPath: indexPath)
-        // TODO: populate cell content
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(cellId, forIndexPath: indexPath) as! VideoCollectionViewCell
+        let video = videos[indexPath.row]
+        
+        if let data = video.tileImage {
+            cell.tileImageView.image = UIImage(data: data)
+        }
+        
         return cell
     }
 }

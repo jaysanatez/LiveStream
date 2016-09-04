@@ -146,12 +146,16 @@ extension RecordViewController: LiveStreamDelegate {
         let asset = AVAsset(URL: url!)
         let imageGenerator = AVAssetImageGenerator(asset: asset)
         var time = asset.duration
+        
+        // TODO: set duration
         print("TIME: \(time)")
-        time.value = 0
+        time.value = time.value / 2
         
         do {
             let imageRef = try imageGenerator.copyCGImageAtTime(time, actualTime: nil)
             let image = UIImage(CGImage: imageRef)
+            
+            // TODO: size down image
             
             video.tileImage = UIImagePNGRepresentation(image)
             video.save()

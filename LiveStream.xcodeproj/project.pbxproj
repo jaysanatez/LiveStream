@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1626523C1D60C0690039AE64 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1626523B1D60C0690039AE64 /* Globals.swift */; };
 		1626523E1D60EBF40039AE64 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1626523D1D60EBF40039AE64 /* HomeViewController.swift */; };
+		168CC00C1D7CA345008B99BF /* VideoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168CC00B1D7CA345008B99BF /* VideoCollectionViewCell.swift */; };
 		16A5D2A81D77E38C00D63D00 /* VideoDirectoryHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A5D2A71D77E38C00D63D00 /* VideoDirectoryHelpers.swift */; };
 		16A5D2AB1D77E43500D63D00 /* LiveStreamProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A5D2AA1D77E43500D63D00 /* LiveStreamProtocols.swift */; };
 		16A5D2AD1D77E54000D63D00 /* LiveStreamController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A5D2AC1D77E54000D63D00 /* LiveStreamController.swift */; };
@@ -39,6 +40,7 @@
 /* Begin PBXFileReference section */
 		1626523B1D60C0690039AE64 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
 		1626523D1D60EBF40039AE64 /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
+		168CC00B1D7CA345008B99BF /* VideoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoCollectionViewCell.swift; sourceTree = "<group>"; };
 		16A5D2A71D77E38C00D63D00 /* VideoDirectoryHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoDirectoryHelpers.swift; sourceTree = "<group>"; };
 		16A5D2AA1D77E43500D63D00 /* LiveStreamProtocols.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveStreamProtocols.swift; sourceTree = "<group>"; };
 		16A5D2AC1D77E54000D63D00 /* LiveStreamController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveStreamController.swift; sourceTree = "<group>"; };
@@ -98,6 +100,7 @@
 				16C7759B1D5FA3C50085B04F /* RecordViewController.swift */,
 				16C7759D1D5FA3C50085B04F /* Main.storyboard */,
 				16C775A51D5FA3C50085B04F /* LaunchScreen.storyboard */,
+				168CC00B1D7CA345008B99BF /* VideoCollectionViewCell.swift */,
 			);
 			name = UI;
 			sourceTree = "<group>";
@@ -271,6 +274,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				168CC00C1D7CA345008B99BF /* VideoCollectionViewCell.swift in Sources */,
 				16AF42761D772922007C16EB /* VideoCDService.swift in Sources */,
 				1626523E1D60EBF40039AE64 /* HomeViewController.swift in Sources */,
 				16AF42711D772803007C16EB /* Video+CoreDataProperties.swift in Sources */,
