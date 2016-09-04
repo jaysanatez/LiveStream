@@ -16,5 +16,5 @@ protocol LiveStreamProtocol {
 
 protocol LiveStreamDelegate {
     func didBeginRecordingVideo(videoUrl: NSURL)
-    func didFinishRecordingVideo(thumbnail: UIImage, videoDuration: Double)
+    func didFinishRecordingVideo()
 }

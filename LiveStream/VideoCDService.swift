@@ -6,6 +6,7 @@
 //  Copyright © 2016 jacob.sanchez. All rights reserved.
 //
 
+import UIKit
 import CoreData
 
 let videosEntity = "Video"
@@ -44,5 +45,9 @@ class VideoCDService: BaseCDService {
         }
         
         return nil
+    }
+    
+    func updateVideo(video: Video, tileImage: UIImage) -> Video {
+        return video
     }
 }

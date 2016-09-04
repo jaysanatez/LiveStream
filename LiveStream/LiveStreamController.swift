@@ -95,6 +95,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         // remove output to stop capturing the session
         finishWritingToAssetWriter()
         removeOutputs()
+        delegate.didFinishRecordingVideo()
     }
     
     // helper methods

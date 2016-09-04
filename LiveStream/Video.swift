@@ -11,4 +11,12 @@ import CoreData
 
 class Video: NSManagedObject {
 
+    func save() {
+        do {
+            try self.managedObjectContext?.save()
+        } catch let e as NSError {
+            print("Unable to save video context.")
+            printError(e)
+        }
+    }
 }

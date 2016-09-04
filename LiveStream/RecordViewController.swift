@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 class RecordViewController: UIViewController {
     
@@ -25,6 +26,8 @@ class RecordViewController: UIViewController {
     }()
     
     var videoCdService: VideoCDService!
+    
+    var activeVideo: Video?
     
     // UIViewController overrides
     
@@ -125,15 +128,37 @@ extension RecordViewController: LiveStreamDelegate {
     
     func didBeginRecordingVideo(videoUrl: NSURL) {
         let path = videoUrl.absoluteString
-        if let _ = videoCdService.createNewVideo(path) {
+        if let v = videoCdService.createNewVideo(path) {
+            activeVideo = v
             print("Video was created at path \(path)")
         } else {
             print("Unable to create video at path \(path)")
         }
     }
     
-    func didFinishRecordingVideo(thumbnail: UIImage, videoDuration: Double) {
-        // TODO: update CoreData object
-        print("video duration: \(videoDuration)")
+    func didFinishRecordingVideo() {
+        guard let video = activeVideo else {
+            print("No active video exists.")
+            return
+        }
+        
+        let url = NSURL(string: video.path!)
+        let asset = AVAsset(URL: url!)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        var time = asset.duration
+        print("TIME: \(time)")
+        time.value = 0
+        
+        do {
+            let imageRef = try imageGenerator.copyCGImageAtTime(time, actualTime: nil)
+            let image = UIImage(CGImage: imageRef)
+            
+            video.tileImage = UIImagePNGRepresentation(image)
+            video.save()
+            print("Created thumbnail for video.")
+        } catch let e as NSError {
+            print("Unable to create thumbnail for video.")
+            printError(e)
+        }
     }
 }
