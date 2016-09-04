@@ -20,12 +20,12 @@ class HomeViewController: UIViewController {
         return VideoCDService(coreDataStack: self.coreDataStack, context: self.coreDataStack.mainContext)
     }()
     
-    var videos: [String] = []
+    var videos: [Video] = []
     
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
-        videos = getVideosFromRoot() // videoCDService.retrieveAllVideos()
+        videos = videoCDService.retrieveAllVideos()
         collectionView.reloadData()
     }
     
@@ -66,14 +66,13 @@ class HomeViewController: UIViewController {
 extension HomeViewController: UICollectionViewDelegate {
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
-        /* let video = videos[indexPath.row]
-        guard let _ = video.path else {
+        let video = videos[indexPath.row]
+        guard let path = video.path else {
             print("Null path in video object.")
             return
-        } */
+        }
         
-        let url = getRootURL().URLByAppendingPathComponent(videos[indexPath.row])
-        playVideoFromURL(url)
+        playVideoFromURL(NSURL(string: path)!)
     }
 }
 

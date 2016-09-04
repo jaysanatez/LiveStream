@@ -124,11 +124,7 @@ class RecordViewController: UIViewController {
 extension RecordViewController: LiveStreamDelegate {
     
     func didBeginRecordingVideo(videoUrl: NSURL) {
-        guard let path = videoUrl.path else {
-            print("Invalid path from video url.")
-            return
-        }
-        
+        let path = videoUrl.absoluteString
         if let _ = videoCdService.createNewVideo(path) {
             print("Video was created at path \(path)")
         } else {

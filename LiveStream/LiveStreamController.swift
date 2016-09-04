@@ -88,7 +88,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         // add outputs to start capturing the session
         print("Adding outputs..")
         addOutputs(orientation)
-        // delegate.didBeginRecordingVideo(videoUrl)
+        delegate.didBeginRecordingVideo(videoUrl)
     }
     
     func stopRecordingVideo() {
@@ -294,10 +294,9 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate {
         if !bufferAdaptor.appendPixelBuffer(imageBuffer, withPresentationTime: time) {
             print("Unable to append image buffer to pixel buffer adapter.")
             return
-        } else {
-            print("Buffer appended successfully at time \(frameCount).")
-            frameCount += 1
         }
+        
+        frameCount += 1
     }
 }
 
