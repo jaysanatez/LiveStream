@@ -26,11 +26,14 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     private lazy var _session: AVCaptureSession = {
         let s = AVCaptureSession()
         s.sessionPreset = AVCaptureSessionPresetHigh
+        print("Created capture session.")
         return s
     }()
     
     private lazy var videoUrl: NSURL = {
-        return getRootURL().URLByAppendingPathComponent("output_\(getDateAbbreviation()).mp4")
+        let url = getRootURL().URLByAppendingPathComponent("output_\(getDateAbbreviation()).mp4")
+        print("Video url set to \(url)")
+        return url
     }()
     
     private lazy var _assetWriter: AVAssetWriter? = {
@@ -38,7 +41,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             do {
                 try NSFileManager.defaultManager().removeItemAtPath(self.videoUrl.path!)
             } catch {
-                print("Unable to delete existing .mp4 file")
+                print("Unable to delete existing .mp4 file.")
                 return nil
             }
         }
@@ -48,6 +51,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             return nil
         }
         
+        print("Asset writer configured properly.")
         return assetWriter
     }()
     
@@ -56,11 +60,13 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     var delegate: LiveStreamDelegate
     init(delegate: LiveStreamDelegate) {
         self.delegate = delegate
+        print("Initialized controller with delegate.")
     }
     
     deinit {
         if _session.running {
             _session.stopRunning()
+            print("Session stopped running.")
         }
     }
     
@@ -75,18 +81,20 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         }
         
         _session.startRunning()
+        print("Session started running.")
     }
     
     func startRecordingVideo(orientation: UIDeviceOrientation) {
         // add outputs to start capturing the session
+        print("Adding outputs..")
         addOutputs(orientation)
-        delegate.didBeginRecordingVideo(videoUrl)
+        // delegate.didBeginRecordingVideo(videoUrl)
     }
     
     func stopRecordingVideo() {
         // remove output to stop capturing the session
-        removeOutputs()
         finishWritingToAssetWriter()
+        removeOutputs()
     }
     
     // helper methods
@@ -98,6 +106,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             
             if _session.canAddInput(input) {
                 _session.addInput(input)
+                print("Added session input with type \(mediaType).")
             } else {
                 print("Unable to add the input of type \(mediaType).")
             }
@@ -111,7 +120,9 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         let captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: _session)
         captureVideoPreviewLayer.frame = view.bounds
         captureVideoPreviewLayer.videoGravity = AVLayerVideoGravityResizeAspect
+        
         view.layer.addSublayer(captureVideoPreviewLayer)
+        print("Initialized capture video preview layer.")
     }
     
     private func addOutputs(orientation: UIDeviceOrientation) {
@@ -119,6 +130,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         addVideoDataOutput(orientation)
         addAudioDataOutput()
+        print("Added session outputs.")
         
         _session.commitConfiguration()
     }
@@ -133,6 +145,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         if _session.canAddOutput(output) {
             _session.addOutput(output)
+            print("Added session video data output.")
         } else {
             print("Unable to add video data output.")
         }
@@ -140,6 +153,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         let connection = output.connectionWithMediaType(AVMediaTypeVideo)
         if connection.supportsVideoOrientation {
             connection.videoOrientation = avcvFromUid(orientation)
+            print("Set video orientation to \(orientation)")
         }
     }
     
@@ -166,6 +180,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         for output in _session.outputs as! [AVCaptureOutput] {
             _session.removeOutput(output)
         }
+        print("Capture outputs removed from session.")
         
         _session.commitConfiguration()
     }
@@ -195,15 +210,17 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     private func addVideoWriterInput(outputSettings: [String: AnyObject], size: CGSize) {
         _videoWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: outputSettings)
         guard let assetWriterInput = _videoWriterInput else {
-            print("Unable to initialize asset writer input")
+            print("Unable to initialize asset writer input.")
             return
         }
+        print("Initialized asset writer input.")
         
         let pixelBufferAttributesDictionary: [String: AnyObject] =
             [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA),
              kCVPixelBufferWidthKey as String: size.width,
              kCVPixelBufferHeightKey as String: size.height]
         _pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes: pixelBufferAttributesDictionary)
+        print("Created pixel buffer adaptor.")
         
         guard let assetWriter = _assetWriter else {
             print("Unable to locate asset writer.")
@@ -212,6 +229,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         if assetWriter.canAddInput(assetWriterInput) {
             assetWriter.addInput(assetWriterInput)
+            print("Asset writer input added to asset writer.")
         } else {
             print("Unable to add asset writer input.")
         }
@@ -259,9 +277,10 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate {
         if !configuredAssetWriter {
             let width = CGFloat(CVPixelBufferGetWidth(imageBuffer))
             let height = CGFloat(CVPixelBufferGetHeight(imageBuffer))
-            print("\(height) x \(width)")
+            print("Configuring with size H: \(height) x W: \(width)")
             configureAssetWriter(CGSizeMake(width, height))
             configuredAssetWriter = true
+            print("Asset writer configured.")
         }
         
         CVPixelBufferUnlockBaseAddress(imageBuffer, 0)
@@ -275,9 +294,10 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate {
         if !bufferAdaptor.appendPixelBuffer(imageBuffer, withPresentationTime: time) {
             print("Unable to append image buffer to pixel buffer adapter.")
             return
+        } else {
+            print("Buffer appended successfully at time \(frameCount).")
+            frameCount += 1
         }
-        
-        frameCount += 1
     }
 }
 

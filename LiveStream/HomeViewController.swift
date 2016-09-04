@@ -20,12 +20,12 @@ class HomeViewController: UIViewController {
         return VideoCDService(coreDataStack: self.coreDataStack, context: self.coreDataStack.mainContext)
     }()
     
-    var videos: [Video] = []
+    var videos: [String] = []
     
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
-        videos = videoCDService.retrieveAllVideos()
+        videos = getVideosFromRoot() // videoCDService.retrieveAllVideos()
         collectionView.reloadData()
     }
     
@@ -51,18 +51,29 @@ class HomeViewController: UIViewController {
             }
         }
     }
+    
+    private func getVideosFromRoot() -> [String] {
+        do {
+            let path = getRootURL().path!
+            return try NSFileManager.defaultManager().contentsOfDirectoryAtPath(path)
+        } catch let e as NSError {
+            printError(e)
+            return []
+        }
+    }
 }
 
 extension HomeViewController: UICollectionViewDelegate {
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
-        let video = videos[indexPath.row]
+        /* let video = videos[indexPath.row]
         guard let _ = video.path else {
             print("Null path in video object.")
             return
-        }
+        } */
         
-        playVideoFromURL(NSURL(fileURLWithPath: "http://techslides.com/demos/sample-videos/small.mp4"))
+        let url = getRootURL().URLByAppendingPathComponent(videos[indexPath.row])
+        playVideoFromURL(url)
     }
 }
 

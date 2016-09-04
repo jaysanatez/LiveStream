@@ -41,6 +41,7 @@ class RecordViewController: UIViewController {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(orientationDidChange),
             name: UIDeviceOrientationDidChangeNotification, object: nil)
         
+        print("Initializing preview layer...")
         controller.initializeWithPreviewLayer(cameraPreviewView)
         transformViewsForCurrentOrientation()
     }
@@ -70,10 +71,13 @@ class RecordViewController: UIViewController {
     
     @IBAction func recordButtonTapped() {
         if isRecording {
+            print("Stop recording video...")
             controller.stopRecordingVideo()
         } else {
             isRecording = true
             durationLabel.hidden = false
+            
+            print("Start recording video...")
             controller.startRecordingVideo(UIDevice.currentDevice().orientation)
         }
         
@@ -127,6 +131,8 @@ extension RecordViewController: LiveStreamDelegate {
         
         if let _ = videoCdService.createNewVideo(path) {
             print("Video was created at path \(path)")
+        } else {
+            print("Unable to create video at path \(path)")
         }
     }
     
