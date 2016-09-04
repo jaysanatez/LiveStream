@@ -11,6 +11,10 @@ import CoreData
 
 class Video: NSManagedObject {
 
+    func getAbsoluteURL() -> NSURL {
+        return GetRootURL().URLByAppendingPathComponent(videoFileName!)
+    }
+    
     func save() {
         do {
             try self.managedObjectContext?.save()

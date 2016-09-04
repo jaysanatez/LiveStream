@@ -15,7 +15,8 @@ import CoreData
 extension Video {
 
     @NSManaged var durationSec: NSNumber?
-    @NSManaged var path: String?
-    @NSManaged var tileImage: NSData?
+    @NSManaged var videoFileName: String?
+    @NSManaged var tileImageData: NSData?
+    @NSManaged var dateCreated: NSDate?
 
 }

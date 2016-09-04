@@ -31,7 +31,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }()
     
     private lazy var videoUrl: NSURL = {
-        let url = getRootURL().URLByAppendingPathComponent("output_\(getDateAbbreviation()).mp4")
+        let url = GetRootURL().URLByAppendingPathComponent("output_\(getDateAbbreviation()).mp4")
         print("Video url set to \(url)")
         return url
     }()

@@ -57,12 +57,7 @@ extension HomeViewController: UICollectionViewDelegate {
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         let video = videos[indexPath.row]
-        guard let path = video.path else {
-            print("Null path in video object.")
-            return
-        }
-        
-        playVideoFromURL(NSURL(string: path)!)
+        playVideoFromURL(video.getAbsoluteURL())
     }
 }
 
@@ -76,7 +71,7 @@ extension HomeViewController: UICollectionViewDataSource {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(cellId, forIndexPath: indexPath) as! VideoCollectionViewCell
         let video = videos[indexPath.row]
         
-        if let data = video.tileImage {
+        if let data = video.tileImageData {
             cell.tileImageView.image = UIImage(data: data)
         }
         

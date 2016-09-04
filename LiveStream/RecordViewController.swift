@@ -127,12 +127,17 @@ class RecordViewController: UIViewController {
 extension RecordViewController: LiveStreamDelegate {
     
     func didBeginRecordingVideo(videoUrl: NSURL) {
-        let path = videoUrl.absoluteString
-        if let v = videoCdService.createNewVideo(path) {
+        let string = videoUrl.absoluteString
+        let urlParts = string.componentsSeparatedByString("/")
+        let fileName = urlParts.last!
+        
+        print("FILENAME: \(fileName)")
+        
+        if let v = videoCdService.createNewVideo(fileName) {
             activeVideo = v
-            print("Video was created at path \(path)")
+            print("Video was created with name \(fileName)")
         } else {
-            print("Unable to create video at path \(path)")
+            print("Unable to create video with name \(fileName)")
         }
     }
     
@@ -142,8 +147,7 @@ extension RecordViewController: LiveStreamDelegate {
             return
         }
         
-        let url = NSURL(string: video.path!)
-        let asset = AVAsset(URL: url!)
+        let asset = AVAsset(URL: video.getAbsoluteURL())
         let imageGenerator = AVAssetImageGenerator(asset: asset)
         var time = asset.duration
         
@@ -157,7 +161,7 @@ extension RecordViewController: LiveStreamDelegate {
             
             // TODO: size down image
             
-            video.tileImage = UIImagePNGRepresentation(image)
+            video.tileImageData = UIImagePNGRepresentation(image)
             video.save()
             print("Created thumbnail for video.")
         } catch let e as NSError {

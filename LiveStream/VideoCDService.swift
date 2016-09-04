@@ -25,7 +25,7 @@ class VideoCDService: BaseCDService {
         return []
     }
     
-    func createNewVideo(path: String) -> Video? {
+    func createNewVideo(fileName: String) -> Video? {
         let entity =  NSEntityDescription.entityForName(videosEntity, inManagedObjectContext:context)
         let obj = NSManagedObject(entity: entity!, insertIntoManagedObjectContext: context) as? Video
         
@@ -34,7 +34,8 @@ class VideoCDService: BaseCDService {
             return nil
         }
         
-        video.path = path
+        video.videoFileName = fileName
+        video.dateCreated = NSDate()
         
         do {
             try context.save()
