@@ -10,24 +10,24 @@ import Foundation
 
 let videoDirName = "videos"
 
-func ensureVideosDirectory() {
+func EnsureVideosDirectory() {
     let fileManager = NSFileManager.defaultManager()
     let url = GetRootURL()
     
     var isDir : ObjCBool = false
     if !fileManager.fileExistsAtPath(url.path!, isDirectory: &isDir) {
         print("Directory '\(videoDirName)' does not exist.")
-        createDirectory(url, fileManager: fileManager)
+        CreateDirectory(url, fileManager: fileManager)
     } else {
         if isDir {
             print("Directory '\(videoDirName)' already exists.")
         } else {
-            createDirectory(url, fileManager: fileManager)
+            CreateDirectory(url, fileManager: fileManager)
         }
     }
 }
 
-func createDirectory(url: NSURL, fileManager: NSFileManager) {
+func CreateDirectory(url: NSURL, fileManager: NSFileManager) {
     do {
         try fileManager.createDirectoryAtURL(url, withIntermediateDirectories: false, attributes: nil)
         print("Created directory '\(videoDirName)'.")

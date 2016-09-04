@@ -14,6 +14,8 @@ class VideoCDService: BaseCDService {
     
     func retrieveAllVideos() -> [Video] {
         let request = NSFetchRequest(entityName: videosEntity)
+        let sortByDate = NSSortDescriptor(key: "dateCreated", ascending: false)
+        request.sortDescriptors = [sortByDate]
         
         do {
             return try context.executeFetchRequest(request) as! [Video]

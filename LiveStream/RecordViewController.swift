@@ -75,6 +75,7 @@ class RecordViewController: UIViewController {
     @IBAction func recordButtonTapped() {
         if isRecording {
             print("Stop recording video...")
+            recordButtonView.hidden = true
             controller.stopRecordingVideo()
         } else {
             isRecording = true

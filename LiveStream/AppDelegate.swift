@@ -16,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     let coreDataStack = CoreDataStack()
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        ensureVideosDirectory()
+        EnsureVideosDirectory()
         
         guard window != nil else {
             print("Unable to locate window.")
