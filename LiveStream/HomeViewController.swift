@@ -51,16 +51,6 @@ class HomeViewController: UIViewController {
             }
         }
     }
-    
-    private func getVideosFromRoot() -> [String] {
-        do {
-            let path = getRootURL().path!
-            return try NSFileManager.defaultManager().contentsOfDirectoryAtPath(path)
-        } catch let e as NSError {
-            printError(e)
-            return []
-        }
-    }
 }
 
 extension HomeViewController: UICollectionViewDelegate {
