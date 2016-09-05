@@ -16,9 +16,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     let framesPerSecond: Int32 = 30
     var frameCount: Int64 = 0
     
-    private var _videoOutput = AVCaptureVideoDataOutput()
-    private var _audioOutput = AVCaptureAudioDataOutput()
-    
     private var _pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor?
     private var _videoWriterInput: AVAssetWriterInput?
     private var _audioWriterInput: AVAssetWriterInput?
@@ -55,6 +52,18 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         print("Asset writer configured properly.")
         return assetWriter
+    }()
+    
+    private lazy var videoOutput: AVCaptureVideoDataOutput = {
+        let output = AVCaptureVideoDataOutput()
+        output.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
+        output.alwaysDiscardsLateVideoFrames = true
+        return output
+    }()
+    
+    private lazy var audioOutput: AVCaptureAudioDataOutput = {
+        let output = AVCaptureAudioDataOutput()
+        return output
     }()
     
     // constructor / destructor
@@ -132,28 +141,27 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         addVideoDataOutput(orientation)
         addAudioDataOutput()
-        subscribeOutputsToQueue()
-        print("Added session outputs.")
+        print("Added data outputs.")
         
         _session.commitConfiguration()
     }
     
     private func addVideoDataOutput(orientation: UIDeviceOrientation) {
-        _videoOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
-        _videoOutput.alwaysDiscardsLateVideoFrames = true
-        
-        if _session.canAddOutput(_videoOutput) {
-            _session.addOutput(_videoOutput)
+        if _session.canAddOutput(videoOutput) {
+            _session.addOutput(videoOutput)
             print("Added session video data output.")
         } else {
             print("Unable to add video data output.")
         }
         
-        let connection = _videoOutput.connectionWithMediaType(AVMediaTypeVideo)
+        let connection = videoOutput.connectionWithMediaType(AVMediaTypeVideo)
         if connection.supportsVideoOrientation {
             connection.videoOrientation = avcvFromUid(orientation)
             print("Set video orientation to \(orientation)")
         }
+        
+        let outputQueue = dispatch_queue_create("videoOutputQueue", DISPATCH_QUEUE_SERIAL)
+        videoOutput.setSampleBufferDelegate(self, queue: outputQueue)
     }
     
     private func avcvFromUid(orientation: UIDeviceOrientation) -> AVCaptureVideoOrientation {
@@ -170,18 +178,15 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func addAudioDataOutput() {
-        if _session.canAddOutput(_audioOutput) {
-            _session.addOutput(_audioOutput)
+        if _session.canAddOutput(audioOutput) {
+            _session.addOutput(audioOutput)
             print("Added session audio data output.")
         } else {
             print("Unable to add audio data output.")
         }
-    }
-    
-    private func subscribeOutputsToQueue() {
-        let outputQueue = dispatch_queue_create("dataOutputQueue", DISPATCH_QUEUE_SERIAL)
-        _videoOutput.setSampleBufferDelegate(self, queue: outputQueue)
-        _audioOutput.setSampleBufferDelegate(self, queue: outputQueue)
+        
+        let outputQueue = dispatch_queue_create("audioOutputQueue", DISPATCH_QUEUE_SERIAL)
+        audioOutput.setSampleBufferDelegate(self, queue: outputQueue)
     }
     
     private func removeOutputs() {
@@ -226,7 +231,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         }
         print("Initialized asset writer input.")
         
-        // TODO: explore appending the sample buffer directly to the writer input
         let pixelBufferAttributesDictionary: [String: AnyObject] =
             [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA),
              kCVPixelBufferWidthKey as String: size.width,
@@ -282,6 +286,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         }
         CVPixelBufferLockBaseAddress(imageBuffer, 0)
         
+        // TODO: explore getting the height and width before capture sample buffer
         if !configuredAssetWriter {
             let width = CGFloat(CVPixelBufferGetWidth(imageBuffer))
             let height = CGFloat(CVPixelBufferGetHeight(imageBuffer))
@@ -316,10 +321,10 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         
-        if captureOutput == _videoOutput {
+        if captureOutput == videoOutput {
             encodeVideoDataBuffer(sampleBuffer)
-        } else if captureOutput == _audioOutput && configuredAssetWriter {
-            
+        } else if captureOutput == audioOutput && configuredAssetWriter {
+            encodeAudioDataBuffer(sampleBuffer)
         }
         
         // if the first buffer is audio, don't append it since we need the
