@@ -145,8 +145,6 @@ extension RecordViewController: LiveStreamDelegate {
         let urlParts = string.componentsSeparatedByString("/")
         let fileName = urlParts.last!
         
-        print("FILENAME: \(fileName)")
-        
         if let v = videoCdService.createNewVideo(fileName) {
             activeVideo = v
             print("Video was created with name \(fileName)")

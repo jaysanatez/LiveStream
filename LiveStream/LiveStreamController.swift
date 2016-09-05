@@ -252,7 +252,27 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func addAudioWriterInput() {
-        // TODO: implement
+        let outputSettings = audioOutput.recommendedAudioSettingsForAssetWriterWithOutputFileType(AVFileTypeMPEG4)
+            as! [String: AnyObject]
+        _audioWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeAudio, outputSettings: outputSettings)
+        _audioWriterInput?.expectsMediaDataInRealTime = true
+        guard let assetWriterInput = _audioWriterInput else {
+            print("Unable to initialize asset writer audio input.")
+            return
+        }
+        print("Initialized asset writer audio input.")
+        
+        guard let assetWriter = _assetWriter else {
+            print("Unable to locate asset writer.")
+            return
+        }
+        
+        if assetWriter.canAddInput(assetWriterInput) {
+            assetWriter.addInput(assetWriterInput)
+            print("Asset writer audio input added to asset writer.")
+        } else {
+            print("Unable to add asset writer audio input.")
+        }
     }
     
     private func startWritingToAssetWriter() {
