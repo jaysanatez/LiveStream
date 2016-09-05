@@ -11,12 +11,8 @@ import AVFoundation
 
 class LiveStreamController: NSObject, LiveStreamProtocol {
     
-    var configuredAssetWriter = false
-    
     let framesPerSecond: Int32 = 30
-    var frameCount: Int64 = 0
     
-    private var _pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor?
     private var _videoWriterInput: AVAssetWriterInput?
     private var _audioWriterInput: AVAssetWriterInput?
     
@@ -31,8 +27,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }()
     
     private lazy var videoUrl: NSURL = {
-        let url = GetRootURL().URLByAppendingPathComponent("video_\(GetDateAbbreviation()).mp4")
-        return url
+        let u = GetRootURL().URLByAppendingPathComponent("video_\(GetDateAbbreviation()).mp4")
+        return u
     }()
     
     private lazy var _assetWriter: AVAssetWriter? = {
@@ -45,25 +41,25 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             }
         }
         
-        guard let assetWriter = try? AVAssetWriter(URL: self.videoUrl, fileType: AVFileTypeMPEG4) else {
+        guard let a = try? AVAssetWriter(URL: self.videoUrl, fileType: AVFileTypeMPEG4) else {
             print("Unable to construct asset writer.")
             return nil
         }
         
         print("Asset writer configured properly.")
-        return assetWriter
+        return a
     }()
     
     private lazy var videoOutput: AVCaptureVideoDataOutput = {
-        let output = AVCaptureVideoDataOutput()
-        output.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
-        output.alwaysDiscardsLateVideoFrames = true
-        return output
+        let o = AVCaptureVideoDataOutput()
+        o.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
+        o.alwaysDiscardsLateVideoFrames = true
+        return o
     }()
     
     private lazy var audioOutput: AVCaptureAudioDataOutput = {
-        let output = AVCaptureAudioDataOutput()
-        return output
+        let o = AVCaptureAudioDataOutput()
+        return o
     }()
     
     // constructor / destructor
@@ -139,6 +135,9 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     private func addOutputs(orientation: UIDeviceOrientation) {
         _session.beginConfiguration()
         
+        configureAssetWriter(CGSizeMake(1080.0, 1920.0))
+        print("Configured asset writer.")
+        
         addVideoDataOutput(orientation)
         addAudioDataOutput()
         print("Added data outputs.")
@@ -160,7 +159,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             print("Set video orientation to \(orientation)")
         }
         
-        let outputQueue = dispatch_queue_create("videoOutputQueue", DISPATCH_QUEUE_SERIAL)
+        let outputQueue = dispatch_queue_create("videoOutputQueue", DISPATCH_QUEUE_CONCURRENT)
         videoOutput.setSampleBufferDelegate(self, queue: outputQueue)
     }
     
@@ -185,7 +184,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             print("Unable to add audio data output.")
         }
         
-        let outputQueue = dispatch_queue_create("audioOutputQueue", DISPATCH_QUEUE_SERIAL)
+        let outputQueue = dispatch_queue_create("audioOutputQueue", DISPATCH_QUEUE_CONCURRENT)
         audioOutput.setSampleBufferDelegate(self, queue: outputQueue)
     }
     
@@ -201,23 +200,24 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func configureAssetWriter(size: CGSize) {
-        guard let assetWriter = _assetWriter else {
-            print("Unable to initialize asset writer.")
-            return
-        }
-        
-        let outputSettings: [String: AnyObject] =
+        let videoOutputSettings: [String: AnyObject] =
             [AVVideoCodecKey: AVVideoCodecH264,
              AVVideoWidthKey: size.width,
              AVVideoHeightKey: size.height]
         
-        guard assetWriter.canApplyOutputSettings(outputSettings, forMediaType: AVMediaTypeVideo) else {
-            print("Unable to apply the output settings.")
-            return
-        }
+        addVideoWriterInput(videoOutputSettings, size: size)
         
-        addVideoWriterInput(outputSettings, size: size)
-        addAudioWriterInput()
+        var acl = AudioChannelLayout()
+        memset(&acl, 0, sizeof(AudioChannelLayout));
+        acl.mChannelLayoutTag = kAudioChannelLayoutTag_Mono
+        
+        let audioOutputSettings: [String: AnyObject] =
+            [AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+             AVNumberOfChannelsKey: 1,
+             AVSampleRateKey: 44100.0,
+             AVChannelLayoutKey: NSData(bytes: &acl, length: sizeof(AudioChannelLayout)) ]
+        
+        addAudioWriterInput(audioOutputSettings)
         
         startWritingToAssetWriter()
     }
@@ -229,14 +229,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             print("Unable to initialize asset writer input.")
             return
         }
-        print("Initialized asset writer input.")
-        
-        let pixelBufferAttributesDictionary: [String: AnyObject] =
-            [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA),
-             kCVPixelBufferWidthKey as String: size.width,
-             kCVPixelBufferHeightKey as String: size.height]
-        _pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: assetWriterInput, sourcePixelBufferAttributes: pixelBufferAttributesDictionary)
-        print("Created pixel buffer adaptor.")
+        print("Initialized asset writer video input.")
         
         guard let assetWriter = _assetWriter else {
             print("Unable to locate asset writer.")
@@ -247,13 +240,11 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             assetWriter.addInput(assetWriterInput)
             print("Asset writer input added to asset writer.")
         } else {
-            print("Unable to add asset writer input.")
+            print("Unable to add asset writer video input.")
         }
     }
     
-    private func addAudioWriterInput() {
-        let outputSettings = audioOutput.recommendedAudioSettingsForAssetWriterWithOutputFileType(AVFileTypeMPEG4)
-            as! [String: AnyObject]
+    private func addAudioWriterInput(outputSettings: [String: AnyObject]) {
         _audioWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeAudio, outputSettings: outputSettings)
         _audioWriterInput?.expectsMediaDataInRealTime = true
         guard let assetWriterInput = _audioWriterInput else {
@@ -300,40 +291,25 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func encodeVideoDataBuffer(sampleBuffer: CMSampleBuffer) {
-        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            print("Unable to get image buffer from sample buffer.")
-            return
-        }
-        CVPixelBufferLockBaseAddress(imageBuffer, 0)
-        
-        // TODO: explore getting the height and width before capture sample buffer
-        if !configuredAssetWriter {
-            let width = CGFloat(CVPixelBufferGetWidth(imageBuffer))
-            let height = CGFloat(CVPixelBufferGetHeight(imageBuffer))
-            print("Configuring with size H: \(height) x W: \(width)")
-            configureAssetWriter(CGSizeMake(width, height))
-            configuredAssetWriter = true
-            print("Asset writer configured.")
-        }
-        
-        CVPixelBufferUnlockBaseAddress(imageBuffer, 0)
-        
-        guard let bufferAdaptor = _pixelBufferAdaptor else {
-            print("Unable to locate pixel buffer adaptor.")
+        guard let videoWriterInput = _videoWriterInput else {
+            print("Unable to locate video writer input")
             return
         }
         
-        let time = CMTimeMake(frameCount, framesPerSecond)
-        if !bufferAdaptor.appendPixelBuffer(imageBuffer, withPresentationTime: time) {
-            print("Unable to append image buffer to pixel buffer adapter.")
-            return
+        if !videoWriterInput.appendSampleBuffer(sampleBuffer) {
+            print("Unable to appen sample buffer to video writer input")
         }
-        
-        frameCount += 1
     }
     
     private func encodeAudioDataBuffer(sampleBuffer: CMSampleBuffer) {
-        // TODO: implement
+        guard let audioWriterInput = _audioWriterInput else {
+            print("Unable to locate audio writer input.")
+            return
+        }
+        
+        if !audioWriterInput.appendSampleBuffer(sampleBuffer) {
+            print("Unable to append sample buffer to audio writer input.")
+        }
     }
 }
 
@@ -341,9 +317,14 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         
+        if !CMSampleBufferDataIsReady(sampleBuffer) {
+            print("Sample buffer is not ready.")
+            return;
+        }
+        
         if captureOutput == videoOutput {
             encodeVideoDataBuffer(sampleBuffer)
-        } else if captureOutput == audioOutput && configuredAssetWriter {
+        } else if captureOutput == audioOutput {
             encodeAudioDataBuffer(sampleBuffer)
         }
         
