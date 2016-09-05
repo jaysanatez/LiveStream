@@ -16,9 +16,13 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     let framesPerSecond: Int32 = 30
     var frameCount: Int64 = 0
     
+    private var _videoOutput = AVCaptureVideoDataOutput()
+    private var _audioOutput = AVCaptureAudioDataOutput()
+    
     private var _pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor?
     private var _videoWriterInput: AVAssetWriterInput?
     private var _audioWriterInput: AVAssetWriterInput?
+    
     private var _videoUrl: NSURL?
     
     // lazy vars
@@ -72,7 +76,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     
     func initializeWithPreviewLayer(previewView: UIView?) {
         addSessionInput(AVMediaTypeVideo)
-        // TODO: addSessionInput(AVMediaTypeAudio)
+        addSessionInput(AVMediaTypeAudio)
         
         if let view = previewView {
             addPreviewLayer(view)
@@ -128,27 +132,24 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         addVideoDataOutput(orientation)
         addAudioDataOutput()
+        subscribeOutputsToQueue()
         print("Added session outputs.")
         
         _session.commitConfiguration()
     }
     
     private func addVideoDataOutput(orientation: UIDeviceOrientation) {
-        let output = AVCaptureVideoDataOutput()
-        output.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
-        output.alwaysDiscardsLateVideoFrames = true
+        _videoOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
+        _videoOutput.alwaysDiscardsLateVideoFrames = true
         
-        let outputQueue = dispatch_queue_create("videoDataOutputQueue", DISPATCH_QUEUE_SERIAL)
-        output.setSampleBufferDelegate(self, queue: outputQueue)
-        
-        if _session.canAddOutput(output) {
-            _session.addOutput(output)
+        if _session.canAddOutput(_videoOutput) {
+            _session.addOutput(_videoOutput)
             print("Added session video data output.")
         } else {
             print("Unable to add video data output.")
         }
         
-        let connection = output.connectionWithMediaType(AVMediaTypeVideo)
+        let connection = _videoOutput.connectionWithMediaType(AVMediaTypeVideo)
         if connection.supportsVideoOrientation {
             connection.videoOrientation = avcvFromUid(orientation)
             print("Set video orientation to \(orientation)")
@@ -169,7 +170,18 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func addAudioDataOutput() {
-        // TODO: implement
+        if _session.canAddOutput(_audioOutput) {
+            _session.addOutput(_audioOutput)
+            print("Added session audio data output.")
+        } else {
+            print("Unable to add audio data output.")
+        }
+    }
+    
+    private func subscribeOutputsToQueue() {
+        let outputQueue = dispatch_queue_create("dataOutputQueue", DISPATCH_QUEUE_SERIAL)
+        _videoOutput.setSampleBufferDelegate(self, queue: outputQueue)
+        _audioOutput.setSampleBufferDelegate(self, queue: outputQueue)
     }
     
     private func removeOutputs() {
@@ -207,12 +219,14 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     
     private func addVideoWriterInput(outputSettings: [String: AnyObject], size: CGSize) {
         _videoWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: outputSettings)
+        _videoWriterInput?.expectsMediaDataInRealTime = true
         guard let assetWriterInput = _videoWriterInput else {
             print("Unable to initialize asset writer input.")
             return
         }
         print("Initialized asset writer input.")
         
+        // TODO: explore appending the sample buffer directly to the writer input
         let pixelBufferAttributesDictionary: [String: AnyObject] =
             [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA),
              kCVPixelBufferWidthKey as String: size.width,
@@ -260,12 +274,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             print("Video written to \(assetWriter.outputURL.path!)")
         }
     }
-}
-
-extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
-        
+    private func encodeVideoDataBuffer(sampleBuffer: CMSampleBuffer) {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("Unable to get image buffer from sample buffer.")
             return
@@ -296,8 +306,27 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate {
         
         frameCount += 1
     }
+    
+    private func encodeAudioDataBuffer(sampleBuffer: CMSampleBuffer) {
+        // TODO: implement
+    }
 }
 
+extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate {
+    
+    func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
+        
+        if captureOutput == _videoOutput {
+            encodeVideoDataBuffer(sampleBuffer)
+        } else if captureOutput == _audioOutput && configuredAssetWriter {
+            
+        }
+        
+        // if the first buffer is audio, don't append it since we need the
+        // dimensions of the frame to initialize the asset and that can't
+        // happen until we receive a sample buffer from the video output
+    }
+}
 
 // flip camera
 /*
