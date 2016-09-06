@@ -137,6 +137,47 @@ class RecordViewController: UIViewController {
             self.overviewView.alpha = newAlpha
         }
     }
+    
+    // inscribe image into 200x200 square
+    private func scaleDownImage(image: UIImage) -> UIImage {
+        let height = image.size.height
+        let width = image.size.width
+        
+        if height <= 200 && width <= 200 {
+            return image
+        }
+        
+        let hwRatio = Double(height / width)
+        var newHeight = 200.0
+        var newWidth = 200.0
+        
+        // if height > width, make width smaller to match aspect ratio
+        if hwRatio > 1 {
+            newWidth = newHeight / hwRatio
+        } else if hwRatio < 1 {
+            newHeight = newWidth * hwRatio
+        }
+        
+        print("Scaling down image")
+        print("Old size: \(height) x \(width)")
+        print("New size: \(newHeight) x \(newWidth)")
+        
+        let rect = CGRectMake(0.0, 0.0, CGFloat(newWidth), CGFloat(newHeight))
+        UIGraphicsBeginImageContext(rect.size);
+        
+        image.drawInRect(rect)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext();
+        let imageData = UIImagePNGRepresentation(newImage)
+        
+        UIGraphicsEndImageContext();
+        
+        guard let data = imageData, let img = UIImage(data: data) else {
+            print("Unable to scale down image.")
+            return image
+        }
+        
+        return img
+    }
 }
 
 extension RecordViewController: LiveStreamDelegate {
@@ -170,9 +211,7 @@ extension RecordViewController: LiveStreamDelegate {
         do {
             let newTime = CMTime(value: time.value / 2, timescale: time.timescale)
             let imageRef = try imageGenerator.copyCGImageAtTime(newTime, actualTime: nil)
-            let image = UIImage(CGImage: imageRef)
-            
-            // TODO: size down image
+            let image = scaleDownImage(UIImage(CGImage: imageRef))
             
             video.tileImageData = UIImagePNGRepresentation(image)
             video.save()

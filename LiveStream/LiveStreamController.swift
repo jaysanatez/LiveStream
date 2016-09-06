@@ -11,18 +11,19 @@ import AVFoundation
 
 class LiveStreamController: NSObject, LiveStreamProtocol {
     
+    // constants and global state variables
+    
     let framesPerSecond: Int32 = 30
     var isRecording = false
-    var assetWriterIsWriting = false
+    
+    // not lazy-loaded since configuration is dynamic
     
     private var _videoWriterInput: AVAssetWriterInput?
     private var _audioWriterInput: AVAssetWriterInput?
     
-    private var _videoUrl: NSURL?
-    
     // lazy vars
     
-    private lazy var _session: AVCaptureSession = {
+    private lazy var session: AVCaptureSession = {
         let s = AVCaptureSession()
         s.sessionPreset = AVCaptureSessionPresetHigh
         return s
@@ -64,6 +65,13 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         return o
     }()
     
+    private lazy var audioChannelLayout: AudioChannelLayout = {
+        var a = AudioChannelLayout()
+        memset(&a, 0, sizeof(AudioChannelLayout));
+        a.mChannelLayoutTag = kAudioChannelLayoutTag_Mono
+        return a
+    }()
+    
     // constructor / destructor
     
     var delegate: LiveStreamDelegate
@@ -86,7 +94,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             addPreviewLayer(view)
         }
         
-        _session.startRunning()
+        session.startRunning()
         print("Session started running.")
         print("")
     }
@@ -113,8 +121,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     func deinitialize() {
-        if _session.running {
-            _session.stopRunning()
+        if session.running {
+            session.stopRunning()
         }
     }
     
@@ -125,8 +133,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             let device = AVCaptureDevice.defaultDeviceWithMediaType(mediaType)
             let input = try AVCaptureDeviceInput(device: device)
             
-            if _session.canAddInput(input) {
-                _session.addInput(input)
+            if session.canAddInput(input) {
+                session.addInput(input)
                 print("Added session input with type \(mediaType).")
             } else {
                 print("Unable to add the input of type \(mediaType).")
@@ -138,7 +146,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func addPreviewLayer(view: UIView) {
-        let captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: _session)
+        let captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: session)
         captureVideoPreviewLayer.frame = view.bounds
         captureVideoPreviewLayer.videoGravity = AVLayerVideoGravityResizeAspect
         
@@ -147,7 +155,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func addOutputs(orientation: UIDeviceOrientation) {
-        _session.beginConfiguration()
+        session.beginConfiguration()
         
         addAssetWriterInputs()
         subscribeInputsToQueue()
@@ -157,7 +165,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         addAudioDataOutput()
         print("Added data outputs.")
         
-        _session.commitConfiguration()
+        session.commitConfiguration()
     }
     
     private func addAssetWriterInputs() {
@@ -167,15 +175,12 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
              AVVideoWidthKey: 1080.0,
              AVVideoHeightKey: 1920.0]
         
-        var acl = AudioChannelLayout()
-        memset(&acl, 0, sizeof(AudioChannelLayout));
-        acl.mChannelLayoutTag = kAudioChannelLayoutTag_Mono
-        
         let audioOutputSettings: [String: AnyObject] =
             [AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
              AVNumberOfChannelsKey: 1,
              AVSampleRateKey: 44100.0,
-             AVChannelLayoutKey: NSData(bytes: &acl, length: sizeof(AudioChannelLayout))]
+             AVChannelLayoutKey: NSData(bytes: &audioChannelLayout,
+                length: sizeof(AudioChannelLayout))]
         
         addVideoWriterInput(videoOutputSettings)
         addAudioWriterInput(audioOutputSettings)
@@ -237,8 +242,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func addCaptureOutput(captureOutput: AVCaptureOutput) {
-        if _session.canAddOutput(captureOutput) {
-            _session.addOutput(captureOutput)
+        if session.canAddOutput(captureOutput) {
+            session.addOutput(captureOutput)
             print("Added capture output to session.")
         } else {
             print("Unable to add capture output to session.")
@@ -276,14 +281,14 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }
     
     private func removeOutputs() {
-        _session.beginConfiguration()
+        session.beginConfiguration()
         
-        for output in _session.outputs as! [AVCaptureOutput] {
-            _session.removeOutput(output)
+        for output in session.outputs as! [AVCaptureOutput] {
+            session.removeOutput(output)
         }
         print("Capture outputs removed from session.")
         
-        _session.commitConfiguration()
+        session.commitConfiguration()
     }
     
     // methods used in capture data output delegate
