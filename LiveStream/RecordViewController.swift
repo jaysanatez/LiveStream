@@ -55,6 +55,7 @@ class RecordViewController: UIViewController {
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         NSNotificationCenter.defaultCenter().removeObserver(self)
+        controller.deinitialize()
     }
     
     override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {

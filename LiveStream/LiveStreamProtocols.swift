@@ -12,6 +12,7 @@ protocol LiveStreamProtocol {
     func initializeWithPreviewLayer(view: UIView?)
     func startRecordingVideo(orientation: UIDeviceOrientation)
     func stopRecordingVideo()
+    func deinitialize()
 }
 
 protocol LiveStreamDelegate {
