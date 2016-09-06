@@ -12,6 +12,7 @@ import AVFoundation
 class LiveStreamController: NSObject, LiveStreamProtocol {
     
     let framesPerSecond: Int32 = 30
+    var isRecording = false
     
     private var _videoWriterInput: AVAssetWriterInput?
     private var _audioWriterInput: AVAssetWriterInput?
@@ -41,19 +42,20 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             }
         }
         
-        guard let a = try? AVAssetWriter(URL: self.videoUrl, fileType: AVFileTypeMPEG4) else {
+        guard let a = try? AVAssetWriter(URL: self.videoUrl, fileType: AVFileTypeQuickTimeMovie) else {
             print("Unable to construct asset writer.")
             return nil
         }
         
         print("Asset writer configured properly.")
+        print("Asset writer status: \(a.status)") // TODO: remove
         return a
     }()
     
     private lazy var videoOutput: AVCaptureVideoDataOutput = {
         let o = AVCaptureVideoDataOutput()
         o.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
-        o.alwaysDiscardsLateVideoFrames = true
+        o.alwaysDiscardsLateVideoFrames = false
         return o
     }()
     
@@ -89,15 +91,21 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         _session.startRunning()
         print("Session started running.")
+        print("")
     }
     
     func startRecordingVideo(orientation: UIDeviceOrientation) {
+        isRecording = true
+        
         // add outputs to start capturing the session
         addOutputs(orientation)
         delegate.didBeginRecordingVideo(videoUrl)
+        print("")
     }
     
     func stopRecordingVideo() {
+        isRecording = false
+        
         // remove output to stop capturing the session
         finishWritingToAssetWriter()
         removeOutputs()
@@ -135,7 +143,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     private func addOutputs(orientation: UIDeviceOrientation) {
         _session.beginConfiguration()
         
-        configureAssetWriter(CGSizeMake(1080.0, 1920.0))
+        addAssetWriterInputs(CGSizeMake(1080.0, 1920.0))
+        print("Asset writer status: \(_assetWriter!.status)") // TODO: remove
         print("Configured asset writer.")
         
         addVideoDataOutput(orientation)
@@ -143,6 +152,78 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         print("Added data outputs.")
         
         _session.commitConfiguration()
+    }
+    
+    private func addAssetWriterInputs(size: CGSize) {
+        let videoCompProps: [String: AnyObject] =
+            [AVVideoAverageBitRateKey: 128.0 * 1024.0]
+        
+        let videoOutputSettings: [String: AnyObject] =
+            [AVVideoCodecKey: AVVideoCodecH264,
+             AVVideoWidthKey: size.width,
+             AVVideoHeightKey: size.height,
+             AVVideoCompressionPropertiesKey: videoCompProps]
+        
+        addVideoWriterInput(videoOutputSettings, size: size)
+        
+        var acl = AudioChannelLayout()
+        memset(&acl, 0, sizeof(AudioChannelLayout));
+        acl.mChannelLayoutTag = kAudioChannelLayoutTag_Mono
+        
+        let audioOutputSettings: [String: AnyObject] =
+            [AVFormatIDKey: Int(kAudioFormatAppleLossless),
+             AVNumberOfChannelsKey: 1,
+             AVSampleRateKey: 44100.0,
+             AVEncoderBitDepthHintKey: 16,
+             AVChannelLayoutKey: NSData(bytes: &acl, length: sizeof(AudioChannelLayout)) ]
+        
+        addAudioWriterInput(audioOutputSettings)
+    }
+    
+    private func addVideoWriterInput(outputSettings: [String: AnyObject], size: CGSize) {
+        _videoWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: outputSettings)
+        _videoWriterInput?.expectsMediaDataInRealTime = true
+        guard let assetWriterInput = _videoWriterInput else {
+            print("Unable to initialize asset writer input.")
+            return
+        }
+        print("Initialized asset writer video input.")
+        
+        guard let assetWriter = _assetWriter else {
+            print("Unable to locate asset writer.")
+            return
+        }
+        
+        if assetWriter.canAddInput(assetWriterInput) {
+            assetWriter.addInput(assetWriterInput)
+            print("Asset writer status: \(assetWriter.status)") // TODO: remove
+            print("Asset writer input added to asset writer.")
+        } else {
+            print("Unable to add asset writer video input.")
+        }
+    }
+    
+    private func addAudioWriterInput(outputSettings: [String: AnyObject]) {
+        _audioWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeAudio, outputSettings: outputSettings)
+        _audioWriterInput?.expectsMediaDataInRealTime = true
+        guard let assetWriterInput = _audioWriterInput else {
+            print("Unable to initialize asset writer audio input.")
+            return
+        }
+        print("Initialized asset writer audio input.")
+        
+        guard let assetWriter = _assetWriter else {
+            print("Unable to locate asset writer.")
+            return
+        }
+        
+        if assetWriter.canAddInput(assetWriterInput) {
+            assetWriter.addInput(assetWriterInput)
+            print("Asset writer status: \(assetWriter.status)") // TODO: remove
+            print("Asset writer audio input added to asset writer.")
+        } else {
+            print("Unable to add asset writer audio input.")
+        }
     }
     
     private func addVideoDataOutput(orientation: UIDeviceOrientation) {
@@ -188,94 +269,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         audioOutput.setSampleBufferDelegate(self, queue: outputQueue)
     }
     
-    private func removeOutputs() {
-        _session.beginConfiguration()
-        
-        for output in _session.outputs as! [AVCaptureOutput] {
-            _session.removeOutput(output)
-        }
-        print("Capture outputs removed from session.")
-        
-        _session.commitConfiguration()
-    }
-    
-    private func configureAssetWriter(size: CGSize) {
-        let videoOutputSettings: [String: AnyObject] =
-            [AVVideoCodecKey: AVVideoCodecH264,
-             AVVideoWidthKey: size.width,
-             AVVideoHeightKey: size.height]
-        
-        addVideoWriterInput(videoOutputSettings, size: size)
-        
-        var acl = AudioChannelLayout()
-        memset(&acl, 0, sizeof(AudioChannelLayout));
-        acl.mChannelLayoutTag = kAudioChannelLayoutTag_Mono
-        
-        let audioOutputSettings: [String: AnyObject] =
-            [AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-             AVNumberOfChannelsKey: 1,
-             AVSampleRateKey: 44100.0,
-             AVChannelLayoutKey: NSData(bytes: &acl, length: sizeof(AudioChannelLayout)) ]
-        
-        addAudioWriterInput(audioOutputSettings)
-        
-        startWritingToAssetWriter()
-    }
-    
-    private func addVideoWriterInput(outputSettings: [String: AnyObject], size: CGSize) {
-        _videoWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: outputSettings)
-        _videoWriterInput?.expectsMediaDataInRealTime = true
-        guard let assetWriterInput = _videoWriterInput else {
-            print("Unable to initialize asset writer input.")
-            return
-        }
-        print("Initialized asset writer video input.")
-        
-        guard let assetWriter = _assetWriter else {
-            print("Unable to locate asset writer.")
-            return
-        }
-        
-        if assetWriter.canAddInput(assetWriterInput) {
-            assetWriter.addInput(assetWriterInput)
-            print("Asset writer input added to asset writer.")
-        } else {
-            print("Unable to add asset writer video input.")
-        }
-    }
-    
-    private func addAudioWriterInput(outputSettings: [String: AnyObject]) {
-        _audioWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeAudio, outputSettings: outputSettings)
-        _audioWriterInput?.expectsMediaDataInRealTime = true
-        guard let assetWriterInput = _audioWriterInput else {
-            print("Unable to initialize asset writer audio input.")
-            return
-        }
-        print("Initialized asset writer audio input.")
-        
-        guard let assetWriter = _assetWriter else {
-            print("Unable to locate asset writer.")
-            return
-        }
-        
-        if assetWriter.canAddInput(assetWriterInput) {
-            assetWriter.addInput(assetWriterInput)
-            print("Asset writer audio input added to asset writer.")
-        } else {
-            print("Unable to add asset writer audio input.")
-        }
-    }
-    
-    private func startWritingToAssetWriter() {
-        guard let assetWriter = _assetWriter else {
-            print("Unable to locate asset writer.")
-            return
-        }
-        
-        assetWriter.startWriting()
-        assetWriter.startSessionAtSourceTime(kCMTimeZero)
-    }
-    
     private func finishWritingToAssetWriter() {
         guard let assetWriter = _assetWriter else {
             print("Unable to locate asset writer.")
@@ -288,6 +281,17 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         assetWriter.finishWritingWithCompletionHandler {
             print("Video written to \(assetWriter.outputURL.path!)")
         }
+    }
+    
+    private func removeOutputs() {
+        _session.beginConfiguration()
+        
+        for output in _session.outputs as! [AVCaptureOutput] {
+            _session.removeOutput(output)
+        }
+        print("Capture outputs removed from session.")
+        
+        _session.commitConfiguration()
     }
     
     private func encodeVideoDataBuffer(sampleBuffer: CMSampleBuffer) {
@@ -317,9 +321,31 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         
+        if !isRecording {
+            print("Not recording. Skipping sample buffer.")
+            return
+        }
+        
         if !CMSampleBufferDataIsReady(sampleBuffer) {
-            print("Sample buffer is not ready.")
+            print("Sample buffer is not ready. Skipping sample buffer.")
             return;
+        }
+        
+        guard let assetWriter = _assetWriter else {
+            print("Could not locate asset writer.")
+            return
+        }
+        
+        print("Asset writer status: \(assetWriter.status)") // TODO: remove
+        let lastSessionTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        if assetWriter.status != .Writing {
+            assetWriter.startWriting()
+            assetWriter.startSessionAtSourceTime(lastSessionTime)
+        }
+        
+        if assetWriter.status.rawValue > AVAssetWriterStatus.Writing.rawValue {
+            print("Writer status is: \(assetWriter.status.rawValue).")
+            return
         }
         
         if captureOutput == videoOutput {
@@ -327,10 +353,6 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
         } else if captureOutput == audioOutput {
             encodeAudioDataBuffer(sampleBuffer)
         }
-        
-        // if the first buffer is audio, don't append it since we need the
-        // dimensions of the frame to initialize the asset and that can't
-        // happen until we receive a sample buffer from the video output
     }
 }
 
