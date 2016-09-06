@@ -73,10 +73,14 @@ extension HomeViewController: UICollectionViewDataSource {
         
         if let data = video.tileImageData {
             cell.tileImageView.image = UIImage(data: data)
+        } else {
+            cell.tileImageView.image = nil
         }
         
         if let duration = video.durationSec {
             cell.durationLabel.text = GetClockFormattedString(Int(duration))
+        } else {
+            cell.durationLabel.text = "--:--"
         }
         
         return cell

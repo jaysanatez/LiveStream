@@ -16,8 +16,11 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     let framesPerSecond: Int32 = 30
     var isRecording = false
     
+    var delegate: LiveStreamDelegate
+    
     // not lazy-loaded since configuration is dynamic
     
+    private var videoDimensions = CGSize(width: 0, height: 0)
     private var _videoWriterInput: AVAssetWriterInput?
     private var _audioWriterInput: AVAssetWriterInput?
     
@@ -38,7 +41,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         if NSFileManager.defaultManager().fileExistsAtPath(self.videoUrl.path!) {
             do {
                 try NSFileManager.defaultManager().removeItemAtPath(self.videoUrl.path!)
-            } catch {
+            } catch let e as NSError {
+                printError(e)
                 print("Unable to delete existing .mp4 file.")
                 return nil
             }
@@ -74,7 +78,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     
     // constructor / destructor
     
-    var delegate: LiveStreamDelegate
     init(delegate: LiveStreamDelegate) {
         self.delegate = delegate
         print("Initialized controller with delegate.")
@@ -139,6 +142,16 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             } else {
                 print("Unable to add the input of type \(mediaType).")
             }
+            
+            // record video dimensions from video input
+            
+            if mediaType == AVMediaTypeVideo {
+                if let description = device.activeFormat.formatDescription {
+                    let dimensions = CMVideoFormatDescriptionGetDimensions(description)
+                    videoDimensions = CGSize(width: Int(dimensions.width), height: Int(dimensions.height))
+                }
+            }
+            
         } catch let e as NSError {
             print("Unable to access device for type \(mediaType).")
             printError(e)
@@ -157,7 +170,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     private func addOutputs(orientation: UIDeviceOrientation) {
         session.beginConfiguration()
         
-        addAssetWriterInputs()
+        addAssetWriterInputs(orientation)
         subscribeInputsToQueue()
         print("Configured asset writer.")
         
@@ -168,12 +181,13 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         session.commitConfiguration()
     }
     
-    private func addAssetWriterInputs() {
-        // TODO: don't hardcode the W x H
+    private func addAssetWriterInputs(orientation: UIDeviceOrientation) {
+        let isPortrait = orientation == .Portrait || orientation == .PortraitUpsideDown
+        
         let videoOutputSettings: [String: AnyObject] =
             [AVVideoCodecKey: AVVideoCodecH264,
-             AVVideoWidthKey: 1080.0,
-             AVVideoHeightKey: 1920.0]
+             AVVideoWidthKey: isPortrait ? videoDimensions.height : videoDimensions.width,
+             AVVideoHeightKey: isPortrait ? videoDimensions.width : videoDimensions.height]
         
         let audioOutputSettings: [String: AnyObject] =
             [AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
@@ -299,6 +313,11 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             return
         }
         
+        if !writerInput.readyForMoreMediaData {
+            print("Asset writer is not ready for media data.")
+            return
+        }
+        
         if !writerInput.appendSampleBuffer(sampleBuffer) {
             print("Unable to append sample buffer to writer input.")
         }
@@ -309,18 +328,12 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         
-        // TODO: ensure locks work
-        
         // initial state checks
-        
-        // objc_sync_enter(isRecording)
         
         if !isRecording {
             print("Not recording. Skipping sample buffer.")
             return
         }
-        
-        // objc_sync_exit(isRecording)
         
         if !CMSampleBufferDataIsReady(sampleBuffer) {
             print("Sample buffer is not ready. Skipping sample buffer.")
@@ -334,7 +347,7 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
         
         // shift video timeline to begin at first buffer's timestamp
         
-        // objc_sync_enter(assetWriter)
+        objc_sync_enter(assetWriter)
         
         if assetWriter.status != .Writing {
             assetWriter.startWriting()
@@ -342,7 +355,7 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
             assetWriter.startSessionAtSourceTime(lastSessionTime)
         }
         
-        // objc_sync_exit(assetWriter)
+        objc_sync_exit(assetWriter)
         
         // check for a bad status and exit if found
         if assetWriter.status.rawValue > AVAssetWriterStatus.Writing.rawValue {
@@ -353,13 +366,9 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
         // encode buffer to appropriate asset writer input
         
         if captureOutput == videoOutput {
-            // objc_sync_enter(_videoWriterInput)
             appendDataBufferToWriterInput(sampleBuffer, assetWriterInput: _videoWriterInput)
-            // objc_sync_exit(_videoWriterInput)
         } else if captureOutput == audioOutput {
-            // objc_sync_enter(_audioWriterInput)
             appendDataBufferToWriterInput(sampleBuffer, assetWriterInput: _audioWriterInput)
-            // objc_sync_exit(_audioWriterInput)
         }
     }
 }

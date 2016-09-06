@@ -161,10 +161,6 @@ class RecordViewController: UIViewController {
             newHeight = newWidth * hwRatio
         }
         
-        print("Scaling down image")
-        print("Old size: \(height) x \(width)")
-        print("New size: \(newHeight) x \(newWidth)")
-        
         let rect = CGRectMake(0.0, 0.0, CGFloat(newWidth), CGFloat(newHeight))
         UIGraphicsBeginImageContext(rect.size);
         
@@ -179,6 +175,7 @@ class RecordViewController: UIViewController {
             return image
         }
         
+        print("Succesfully scaled down image.")
         return img
     }
 }
