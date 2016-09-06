@@ -139,17 +139,20 @@ class RecordViewController: UIViewController {
     }
     
     // inscribe image into 200x200 square
-    private func scaleDownImage(image: UIImage) -> UIImage {
-        let height = image.size.height
-        let width = image.size.width
+    private func scaleDownImage(image: UIImage, inscribedSize: CGSize) -> UIImage {
+        let height = Double(image.size.height)
+        let width = Double(image.size.width)
         
-        if height <= 200 && width <= 200 {
+        let maxHeight = Double(inscribedSize.height)
+        let maxWidth = Double(inscribedSize.width)
+        
+        if height <= maxHeight && width <= maxWidth {
             return image
         }
         
-        let hwRatio = Double(height / width)
-        var newHeight = 200.0
-        var newWidth = 200.0
+        let hwRatio = height / width
+        var newHeight = maxHeight
+        var newWidth = maxWidth
         
         // if height > width, make width smaller to match aspect ratio
         if hwRatio > 1 {
@@ -211,7 +214,9 @@ extension RecordViewController: LiveStreamDelegate {
         do {
             let newTime = CMTime(value: time.value / 2, timescale: time.timescale)
             let imageRef = try imageGenerator.copyCGImageAtTime(newTime, actualTime: nil)
-            let image = scaleDownImage(UIImage(CGImage: imageRef))
+            
+            let maxTileSize = CGSize(width: 200, height: 200)
+            let image = scaleDownImage(UIImage(CGImage: imageRef), inscribedSize: maxTileSize)
             
             video.tileImageData = UIImagePNGRepresentation(image)
             video.save()

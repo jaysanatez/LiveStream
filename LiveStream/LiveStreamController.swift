@@ -309,15 +309,18 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         
-        // TODO: ensure atomicity of isRecording, assetWriter, videoWriterInput 
-        //       and audioWriter input since used on multiple threads
+        // TODO: ensure locks work
         
         // initial state checks
+        
+        // objc_sync_enter(isRecording)
         
         if !isRecording {
             print("Not recording. Skipping sample buffer.")
             return
         }
+        
+        // objc_sync_exit(isRecording)
         
         if !CMSampleBufferDataIsReady(sampleBuffer) {
             print("Sample buffer is not ready. Skipping sample buffer.")
@@ -330,23 +333,33 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
         }
         
         // shift video timeline to begin at first buffer's timestamp
+        
+        // objc_sync_enter(assetWriter)
+        
         if assetWriter.status != .Writing {
             assetWriter.startWriting()
             let lastSessionTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
             assetWriter.startSessionAtSourceTime(lastSessionTime)
         }
         
-        // check for a bad status
+        // objc_sync_exit(assetWriter)
+        
+        // check for a bad status and exit if found
         if assetWriter.status.rawValue > AVAssetWriterStatus.Writing.rawValue {
             print("Writer status is: \(assetWriter.status.rawValue).")
             return
         }
         
         // encode buffer to appropriate asset writer input
+        
         if captureOutput == videoOutput {
+            // objc_sync_enter(_videoWriterInput)
             appendDataBufferToWriterInput(sampleBuffer, assetWriterInput: _videoWriterInput)
+            // objc_sync_exit(_videoWriterInput)
         } else if captureOutput == audioOutput {
+            // objc_sync_enter(_audioWriterInput)
             appendDataBufferToWriterInput(sampleBuffer, assetWriterInput: _audioWriterInput)
+            // objc_sync_exit(_audioWriterInput)
         }
     }
 }
