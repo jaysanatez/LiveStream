@@ -42,7 +42,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             }
         }
         
-        guard let a = try? AVAssetWriter(URL: self.videoUrl, fileType: AVFileTypeQuickTimeMovie) else {
+        guard let a = try? AVAssetWriter(URL: self.videoUrl, fileType: AVFileTypeMPEG4) else {
             print("Unable to construct asset writer.")
             return nil
         }
