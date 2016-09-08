@@ -46,7 +46,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             addPreviewLayer(view)
         }
         
-        session.addInputs()
         session.startRunning()
         print("Session started running.")
         print("")

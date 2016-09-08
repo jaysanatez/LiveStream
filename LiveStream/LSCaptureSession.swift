@@ -28,14 +28,10 @@ class LSCaptureSession: AVCaptureSession {
     override init() {
         super.init()
         sessionPreset = AVCaptureSessionPresetHigh
+        addInputs()
     }
     
     // public methods
-    
-    func addInputs() {
-        addSessionInput(AVMediaTypeAudio)
-        addSessionInput(AVMediaTypeVideo)
-    }
     
     func addOutputs(orientation: UIDeviceOrientation) {
         beginConfiguration()
@@ -86,6 +82,11 @@ class LSCaptureSession: AVCaptureSession {
     }
     
     // private helpers
+    
+    private func addInputs() {
+        addSessionInput(AVMediaTypeAudio)
+        addSessionInput(AVMediaTypeVideo)
+    }
     
     private func addSessionInput(mediaType: String) {
         let device = AVCaptureDevice.defaultDeviceWithMediaType(mediaType)
