@@ -26,6 +26,7 @@
 		16C775A71D5FA3C50085B04F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 16C775A51D5FA3C50085B04F /* LaunchScreen.storyboard */; };
 		16C775B21D5FA3C50085B04F /* LiveStreamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16C775B11D5FA3C50085B04F /* LiveStreamTests.swift */; };
 		16E7BEF21D82197000723269 /* LSAssetWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E7BEF11D82197000723269 /* LSAssetWriter.swift */; };
+		16E7BEF41D82279E00723269 /* LSCaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E7BEF31D82279E00723269 /* LSCaptureSession.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +63,7 @@
 		16C775B11D5FA3C50085B04F /* LiveStreamTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStreamTests.swift; sourceTree = "<group>"; };
 		16C775B31D5FA3C50085B04F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		16E7BEF11D82197000723269 /* LSAssetWriter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSAssetWriter.swift; sourceTree = "<group>"; };
+		16E7BEF31D82279E00723269 /* LSCaptureSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCaptureSession.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +132,7 @@
 			children = (
 				16A5D2AA1D77E43500D63D00 /* LiveStreamProtocols.swift */,
 				16A5D2AC1D77E54000D63D00 /* LiveStreamController.swift */,
+				16E7BEF31D82279E00723269 /* LSCaptureSession.swift */,
 				16E7BEF11D82197000723269 /* LSAssetWriter.swift */,
 			);
 			name = Recording;
@@ -285,6 +288,7 @@
 				16C7759C1D5FA3C50085B04F /* RecordViewController.swift in Sources */,
 				16A5D2AB1D77E43500D63D00 /* LiveStreamProtocols.swift in Sources */,
 				16AF426E1D772601007C16EB /* CoreDataStack.swift in Sources */,
+				16E7BEF41D82279E00723269 /* LSCaptureSession.swift in Sources */,
 				16A5D2AD1D77E54000D63D00 /* LiveStreamController.swift in Sources */,
 				16E7BEF21D82197000723269 /* LSAssetWriter.swift in Sources */,
 				16AF42721D772803007C16EB /* Video.swift in Sources */,

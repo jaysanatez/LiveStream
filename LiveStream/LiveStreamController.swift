@@ -13,17 +13,12 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     
     // constants and global state variables
     
-    let framesPerSecond: Int32 = 30
     var isRecording = false
     var delegate: LiveStreamDelegate
-    private var videoDimensions = CGSize(width: 0, height: 0)
-    
     // lazy vars
     
-    private lazy var session: AVCaptureSession = {
-        let s = AVCaptureSession()
-        s.sessionPreset = AVCaptureSessionPresetHigh
-        return s
+    private lazy var session: LSCaptureSession = {
+        return LSCaptureSession()
     }()
     
     private lazy var videoUrl: NSURL = {
@@ -32,18 +27,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     }()
     
     private var _lsAssetWriter: LSAssetWriter?
-    
-    private lazy var videoOutput: AVCaptureVideoDataOutput = {
-        let o = AVCaptureVideoDataOutput()
-        o.videoSettings = [kCVPixelBufferPixelFormatTypeKey: Int(kCVPixelFormatType_32BGRA)]
-        o.alwaysDiscardsLateVideoFrames = false
-        return o
-    }()
-    
-    private lazy var audioOutput: AVCaptureAudioDataOutput = {
-        let o = AVCaptureAudioDataOutput()
-        return o
-    }()
     
     // constructor / destructor
     
@@ -59,13 +42,11 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     // protocol methods
     
     func initializeWithPreviewLayer(previewView: UIView?) {
-        addSessionInput(AVMediaTypeVideo)
-        addSessionInput(AVMediaTypeAudio)
-        
         if let view = previewView {
             addPreviewLayer(view)
         }
         
+        session.addInputs()
         session.startRunning()
         print("Session started running.")
         print("")
@@ -74,10 +55,12 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     func startRecordingVideo(orientation: UIDeviceOrientation) {
         isRecording = true
         
+        let videoDimensions = session.getVideoDimensions()
         _lsAssetWriter = LSAssetWriter(url: videoUrl, orientation: orientation, videoDimensions: videoDimensions)
         
         // add outputs to start capturing the session
-        addOutputs(orientation)
+        session.addOutputs(orientation)
+        session.subscribeOutputsToQueue(self, delegateAudio: self)
         
         print("")
         delegate.didBeginRecordingVideo(videoUrl)
@@ -91,7 +74,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
             print("LVAssetWriter finished writing.")
         }
         
-        removeOutputs()
+        session.removeOutputs()
         
         print("")
         delegate.didFinishRecordingVideo()
@@ -105,33 +88,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     
     // helper methods
     
-    private func addSessionInput(mediaType: String) {
-        do {
-            let device = AVCaptureDevice.defaultDeviceWithMediaType(mediaType)
-            let input = try AVCaptureDeviceInput(device: device)
-            
-            if session.canAddInput(input) {
-                session.addInput(input)
-                print("Added session input with type \(mediaType).")
-            } else {
-                print("Unable to add the input of type \(mediaType).")
-            }
-            
-            // record video dimensions from video input
-            
-            if mediaType == AVMediaTypeVideo {
-                if let description = device.activeFormat.formatDescription {
-                    let dimensions = CMVideoFormatDescriptionGetDimensions(description)
-                    videoDimensions = CGSize(width: Int(dimensions.width), height: Int(dimensions.height))
-                }
-            }
-            
-        } catch let e as NSError {
-            print("Unable to access device for type \(mediaType).")
-            printError(e)
-        }
-    }
-    
     private func addPreviewLayer(view: UIView) {
         let captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: session)
         captureVideoPreviewLayer.frame = view.bounds
@@ -139,72 +95,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         
         view.layer.addSublayer(captureVideoPreviewLayer)
         print("Initialized capture video preview layer.")
-    }
-    
-    private func addOutputs(orientation: UIDeviceOrientation) {
-        session.beginConfiguration()
-        
-        addVideoDataOutput(orientation)
-        addAudioDataOutput()
-        subscribeOutputsToQueue()
-        print("Added data outputs.")
-        
-        session.commitConfiguration()
-    }
-    
-    func subscribeOutputsToQueue() {
-        let outputQueue = dispatch_queue_create("outputQueue", DISPATCH_QUEUE_SERIAL)
-        videoOutput.setSampleBufferDelegate(self, queue: outputQueue)
-        audioOutput.setSampleBufferDelegate(self, queue: outputQueue)
-    }
-
-    private func addVideoDataOutput(orientation: UIDeviceOrientation) {
-        addCaptureOutput(videoOutput)
-        
-        let connection = videoOutput.connectionWithMediaType(AVMediaTypeVideo)
-        if connection.supportsVideoOrientation {
-            connection.videoOrientation = avcvFromUid(orientation)
-            print("Set video orientation to \(orientation)")
-        }
-    }
-    
-    private func addAudioDataOutput() {
-        addCaptureOutput(audioOutput)
-    }
-    
-    private func addCaptureOutput(captureOutput: AVCaptureOutput) {
-        if session.canAddOutput(captureOutput) {
-            session.addOutput(captureOutput)
-            print("Added capture output to session.")
-        } else {
-            print("Unable to add capture output to session.")
-        }
-    }
-    
-    private func avcvFromUid(orientation: UIDeviceOrientation) -> AVCaptureVideoOrientation {
-        switch orientation {
-        case .PortraitUpsideDown:
-            return .PortraitUpsideDown
-        case .LandscapeLeft:
-            return .LandscapeRight
-        case .LandscapeRight:
-            return .LandscapeLeft
-        default:
-            return .Portrait
-        }
-    }
-    
-    // methods when finishing recording
-    
-    private func removeOutputs() {
-        session.beginConfiguration()
-        
-        for output in session.outputs as! [AVCaptureOutput] {
-            session.removeOutput(output)
-        }
-        print("Capture outputs removed from session.")
-        
-        session.commitConfiguration()
     }
 }
 
@@ -215,7 +105,6 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
         // initial state checks
         
         if !isRecording {
-            print("Not recording. Skipping sample buffer.")
             return
         }
         
@@ -249,9 +138,9 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
         
         // encode buffer to appropriate asset writer input
         
-        if captureOutput == videoOutput {
+        if session.isVideoOutput(captureOutput) {
             _lsAssetWriter?.addVideoBuffer(sampleBuffer)
-        } else if captureOutput == audioOutput {
+        } else if session.isAudioOutput(captureOutput) {
             _lsAssetWriter?.addAudioBuffer(sampleBuffer)
         }
     }
