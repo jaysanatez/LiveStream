@@ -15,14 +15,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     
     let framesPerSecond: Int32 = 30
     var isRecording = false
-    
     var delegate: LiveStreamDelegate
-    
-    // not lazy-loaded since configuration is dynamic
-    
     private var videoDimensions = CGSize(width: 0, height: 0)
-    private var _videoWriterInput: AVAssetWriterInput?
-    private var _audioWriterInput: AVAssetWriterInput?
     
     // lazy vars
     
@@ -37,25 +31,7 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         return u
     }()
     
-    private lazy var _assetWriter: AVAssetWriter? = {
-        if NSFileManager.defaultManager().fileExistsAtPath(self.videoUrl.path!) {
-            do {
-                try NSFileManager.defaultManager().removeItemAtPath(self.videoUrl.path!)
-            } catch let e as NSError {
-                printError(e)
-                print("Unable to delete existing .mp4 file.")
-                return nil
-            }
-        }
-        
-        guard let a = try? AVAssetWriter(URL: self.videoUrl, fileType: AVFileTypeMPEG4) else {
-            print("Unable to construct asset writer.")
-            return nil
-        }
-        
-        print("Asset writer configured properly.")
-        return a
-    }()
+    private var _lsAssetWriter: LSAssetWriter?
     
     private lazy var videoOutput: AVCaptureVideoDataOutput = {
         let o = AVCaptureVideoDataOutput()
@@ -67,13 +43,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     private lazy var audioOutput: AVCaptureAudioDataOutput = {
         let o = AVCaptureAudioDataOutput()
         return o
-    }()
-    
-    private lazy var audioChannelLayout: AudioChannelLayout = {
-        var a = AudioChannelLayout()
-        memset(&a, 0, sizeof(AudioChannelLayout));
-        a.mChannelLayoutTag = kAudioChannelLayoutTag_Mono
-        return a
     }()
     
     // constructor / destructor
@@ -105,6 +74,8 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     func startRecordingVideo(orientation: UIDeviceOrientation) {
         isRecording = true
         
+        _lsAssetWriter = LSAssetWriter(url: videoUrl, orientation: orientation, videoDimensions: videoDimensions)
+        
         // add outputs to start capturing the session
         addOutputs(orientation)
         
@@ -116,7 +87,10 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         isRecording = false
         
         // remove output to stop capturing the session
-        finishWritingToAssetWriter()
+        _lsAssetWriter?.finishWritingWithCompletionHandler {
+            print("LVAssetWriter finished writing.")
+        }
+        
         removeOutputs()
         
         print("")
@@ -170,77 +144,20 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     private func addOutputs(orientation: UIDeviceOrientation) {
         session.beginConfiguration()
         
-        addAssetWriterInputs(orientation)
-        subscribeInputsToQueue()
-        print("Configured asset writer.")
-        
         addVideoDataOutput(orientation)
         addAudioDataOutput()
+        subscribeOutputsToQueue()
         print("Added data outputs.")
         
         session.commitConfiguration()
     }
     
-    private func addAssetWriterInputs(orientation: UIDeviceOrientation) {
-        let isPortrait = orientation == .Portrait || orientation == .PortraitUpsideDown
-        
-        let videoOutputSettings: [String: AnyObject] =
-            [AVVideoCodecKey: AVVideoCodecH264,
-             AVVideoWidthKey: isPortrait ? videoDimensions.height : videoDimensions.width,
-             AVVideoHeightKey: isPortrait ? videoDimensions.width : videoDimensions.height]
-        
-        let audioOutputSettings: [String: AnyObject] =
-            [AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-             AVNumberOfChannelsKey: 1,
-             AVSampleRateKey: 44100.0,
-             AVChannelLayoutKey: NSData(bytes: &audioChannelLayout,
-                length: sizeof(AudioChannelLayout))]
-        
-        addVideoWriterInput(videoOutputSettings)
-        addAudioWriterInput(audioOutputSettings)
-    }
-    
-    func subscribeInputsToQueue() {
+    func subscribeOutputsToQueue() {
         let outputQueue = dispatch_queue_create("outputQueue", DISPATCH_QUEUE_SERIAL)
         videoOutput.setSampleBufferDelegate(self, queue: outputQueue)
         audioOutput.setSampleBufferDelegate(self, queue: outputQueue)
     }
-    
-    private func addVideoWriterInput(outputSettings: [String: AnyObject]) {
-        _videoWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: outputSettings)
-        _videoWriterInput?.expectsMediaDataInRealTime = true
-        print("Initialized asset writer video input.")
-        
-        addWriterInput(_videoWriterInput)
-    }
-    
-    private func addAudioWriterInput(outputSettings: [String: AnyObject]) {
-        _audioWriterInput = AVAssetWriterInput(mediaType: AVMediaTypeAudio, outputSettings: outputSettings)
-        _audioWriterInput?.expectsMediaDataInRealTime = true
-        print("Initialized asset writer audio input.")
-        
-        addWriterInput(_audioWriterInput)
-    }
-    
-    private func addWriterInput(assetWriterInput: AVAssetWriterInput?) {
-        guard let input = assetWriterInput else {
-            print("Unable to initialize asset writer input.")
-            return
-        }
-        
-        guard let assetWriter = _assetWriter else {
-            print("Unable to locate asset writer.")
-            return
-        }
-        
-        if assetWriter.canAddInput(input) {
-            assetWriter.addInput(input)
-            print("Asset writer audio input added to asset writer.")
-        } else {
-            print("Unable to add asset writer audio input.")
-        }
-    }
-    
+
     private func addVideoDataOutput(orientation: UIDeviceOrientation) {
         addCaptureOutput(videoOutput)
         
@@ -279,21 +196,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
     
     // methods when finishing recording
     
-    private func finishWritingToAssetWriter() {
-        guard let assetWriter = _assetWriter else {
-            print("Unable to locate asset writer.")
-            return
-        }
-        
-        _videoWriterInput?.markAsFinished()
-        _audioWriterInput?.markAsFinished()
-        print("Writer inputs marked as finished.")
-        
-        assetWriter.finishWritingWithCompletionHandler {
-            print("Video written to \(assetWriter.outputURL.path!)")
-        }
-    }
-    
     private func removeOutputs() {
         session.beginConfiguration()
         
@@ -303,24 +205,6 @@ class LiveStreamController: NSObject, LiveStreamProtocol {
         print("Capture outputs removed from session.")
         
         session.commitConfiguration()
-    }
-    
-    // methods used in capture data output delegate
-    
-    private func appendDataBufferToWriterInput(sampleBuffer: CMSampleBuffer, assetWriterInput: AVAssetWriterInput?) {
-        guard let writerInput = assetWriterInput else {
-            print("Unable to locate audio writer input.")
-            return
-        }
-        
-        if !writerInput.readyForMoreMediaData {
-            print("Asset writer is not ready for media data.")
-            return
-        }
-        
-        if !writerInput.appendSampleBuffer(sampleBuffer) {
-            print("Unable to append sample buffer to writer input.")
-        }
     }
 }
 
@@ -340,7 +224,7 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
             return;
         }
         
-        guard let assetWriter = _assetWriter else {
+        guard let assetWriter = _lsAssetWriter else {
             print("Could not locate asset writer.")
             return
         }
@@ -366,9 +250,9 @@ extension LiveStreamController: AVCaptureVideoDataOutputSampleBufferDelegate,AVC
         // encode buffer to appropriate asset writer input
         
         if captureOutput == videoOutput {
-            appendDataBufferToWriterInput(sampleBuffer, assetWriterInput: _videoWriterInput)
+            _lsAssetWriter?.addVideoBuffer(sampleBuffer)
         } else if captureOutput == audioOutput {
-            appendDataBufferToWriterInput(sampleBuffer, assetWriterInput: _audioWriterInput)
+            _lsAssetWriter?.addAudioBuffer(sampleBuffer)
         }
     }
 }
